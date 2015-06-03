@@ -507,7 +507,6 @@
             <groupId>reply</groupId>
             <artifactId>reply</artifactId>
             <version>${reply.version}</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 

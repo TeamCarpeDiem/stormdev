@@ -69,8 +69,8 @@
       <groupId>org.apache.storm</groupId>
       <artifactId>storm-core</artifactId>
       <version>${project.version}</version>
-      <!-- keep storm out of the jar-with-dependencies -->
-      <scope>provided</scope>
+      <!-- keep storm out of the jar-with-dependencies
+      <scope>provided</scope> -->
     </dependency>
     <dependency>
       <groupId>commons-collections</groupId>

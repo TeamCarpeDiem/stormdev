@@ -2,7 +2,6 @@ package storm.starter;
 
 import backtype.storm.Constants;
 import backtype.storm.topology.base.BaseRichBolt;
-
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
@@ -16,7 +15,7 @@ import java.util.Queue;
 /**
  * Created by Harini Rajendran on 6/3/15.
  */
-public class baseWindowBolt extends BaseRichBolt{
+public class BaseWindowBolt extends BaseRichBolt{
     private long windowLength;
     private long slideBy;
     private String windowingMechanism; //A String to set the type of windowing mechanism
@@ -26,34 +25,24 @@ public class baseWindowBolt extends BaseRichBolt{
 
     /*   Constructors */
 
-    protected baseWindowBolt()
+    protected BaseWindowBolt()
     {
-        isTimeBased = false;
-        windowLength = 100;
-        slideBy = 100;
-        windowStartAddress = null;
-        windowEndAddress = null;
-        windowingMechanism = getWindowingMechanism(windowLength, slideBy);
+        this(10, 10, true, -1);
     }
 
-    protected baseWindowBolt(long windowlength, long slideby, boolean istimebased)
+    protected BaseWindowBolt(long windowlength, boolean istimebased)
+    {
+        this(windowlength, windowlength,istimebased, -1);
+    }
+
+    protected BaseWindowBolt(long windowlength, long slideby, boolean istimebased, int windowType)
     {
         windowLength = windowlength;
         slideBy = slideby;
         isTimeBased = istimebased;
         windowStartAddress = new LinkedList<Long>();
         windowEndAddress = new LinkedList<Long>();
-        windowingMechanism = getWindowingMechanism(windowLength, slideBy);
-    }
-
-    protected baseWindowBolt(long windowlength, boolean istimebased)
-    {
-        windowLength = windowlength;
-        slideBy = windowlength;
-        isTimeBased = istimebased;
-        windowStartAddress = null;
-        windowEndAddress = null;
-        windowingMechanism = getWindowingMechanism(windowLength, slideBy);
+        windowingMechanism = getWindowingMechanism(windowLength, slideBy, windowType);
     }
 
     /*    Abstract Functions   */
@@ -100,8 +89,21 @@ public class baseWindowBolt extends BaseRichBolt{
         collector.emit("mockTickTuple",tuple, new Values("__MOCKTICKTUPLE__"));
     }
 
-    private String getWindowingMechanism(long windowLength, long slideBy)
+    private String getWindowingMechanism(long windowLength, long slideBy, int wType)
     {
-        
+        if(wType==1)
+        {
+            return "Landmark Window";
+        }
+        if(windowLength == slideBy)
+            return "Tumbling Window";
+        else if(windowLength > slideBy)
+            return "Sliding Window";
+        else if((windowLength < slideBy) && (slideBy % windowLength == 0))
+            return "Jumping Window";
+        else if(windowLength < slideBy)
+            return "Sampling Window";
+
+        return "Unrecognized Windowing Mechanism";
     }
 }

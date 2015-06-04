@@ -1,10 +1,10 @@
 package storm.starter;
 
 import backtype.storm.Constants;
-import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
+import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
@@ -25,24 +25,32 @@ public class BaseWindowBolt extends BaseRichBolt{
 
     /*   Constructors */
 
-    protected BaseWindowBolt()
+    public BaseWindowBolt()
     {
         this(10, 10, true, -1);
     }
 
-    protected BaseWindowBolt(long windowlength, boolean istimebased)
+    public BaseWindowBolt(long windowlength, boolean istimebased)
     {
         this(windowlength, windowlength,istimebased, -1);
     }
 
-    protected BaseWindowBolt(long windowlength, long slideby, boolean istimebased, int windowType)
+    public BaseWindowBolt(long windowlength, long slideby, boolean istimebased, int windowType)
     {
-        windowLength = windowlength;
-        slideBy = slideby;
+        if(windowlength <= 0)
+            throw new IllegalArgumentException("Window length should be a Positive value");
+        else
+            windowLength = windowlength;
+
+        if(slideby <= 0 && windowlength != slideby)
+            throw new IllegalArgumentException("Slideby should be a Positive value");
+        else
+            slideBy = slideby;
+
         isTimeBased = istimebased;
         windowStartAddress = new LinkedList<Long>();
         windowEndAddress = new LinkedList<Long>();
-        windowingMechanism = getWindowingMechanism(windowLength, slideBy, windowType);
+        windowingMechanism = getWindowingMechanism(windowType);
     }
 
     /*    Abstract Functions   */
@@ -89,7 +97,7 @@ public class BaseWindowBolt extends BaseRichBolt{
         collector.emit("mockTickTuple",tuple, new Values("__MOCKTICKTUPLE__"));
     }
 
-    private String getWindowingMechanism(long windowLength, long slideBy, int wType)
+    private String getWindowingMechanism(int wType)
     {
         if(wType==1)
         {

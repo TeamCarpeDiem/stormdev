@@ -49,7 +49,7 @@ public class CummulativeMovingAvgTopology {
                 LOG.info("~~~Got Mock Tuple");
                 double avg = cma / count;
                 _collector.emit(tuple, new Values(avg));
-                LOG.info("Window Avg is::"+ avg + "    Window Total::" + cma + "   Count::"+ count);
+                LOG.info("Window Avg is::" + avg + "    Window Total::" + cma + "   Count::" + count);
                 count = 0;
                 cma = 0;
             }
@@ -101,9 +101,11 @@ public class CummulativeMovingAvgTopology {
 
         Utils.sleep(5000);
 
+
+
         LOG.info("Testing Time Based");
         builder = new TopologyBuilder();
-        builder.setSpout("RandomInt", new RandomIntegerSpout(), 10);
+        builder.setSpout("RandomInt", new RandomIntegerSpout(), 15);
         builder.setBolt("Tumbling", new TumblingWindow(5,true),1).shuffleGrouping("RandomInt");
         builder.setBolt("Average", new MovingAverage(), 1).shuffleGrouping("Tumbling","dataStream")
                 .shuffleGrouping("Tumbling","mockTickTuple");

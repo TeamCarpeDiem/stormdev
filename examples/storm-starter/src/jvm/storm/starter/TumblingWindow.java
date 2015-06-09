@@ -16,7 +16,7 @@ import org.apache.log4j.Logger;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TumblingWindow extends BaseWindowBolt {
+public class TumblingWindow extends BaseWindowBolt implements ITumbling {
     final static Logger LOG = Logger.getLogger(TumblingWindow.class.getName());
     OutputCollector _collector;
     long count;

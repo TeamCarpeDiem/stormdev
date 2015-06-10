@@ -7,6 +7,7 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
+import storm.starter.Interfaces.IBaseWindowBolt;
 
 import java.util.LinkedList;
 import java.util.Map;
@@ -15,7 +16,7 @@ import java.util.Queue;
 /**
  * Created by Harini Rajendran on 6/3/15.
  */
-public class BaseWindowBolt extends BaseRichBolt{
+public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
     private long windowLength;
     private long slideBy;
     private String windowingMechanism; //A String to set the type of windowing mechanism

@@ -7,6 +7,7 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
+import storm.starter.HelperClasses.WindowObject;
 
 import java.util.LinkedList;
 import java.util.Map;
@@ -14,6 +15,7 @@ import java.util.Queue;
 
 /**
  * Created by Harini Rajendran on 6/3/15.
+ * Modified by Sachin Jain on 6/9/15. Constructor with windowobject as a parameter
  */
 public class BaseWindowBolt extends BaseRichBolt{
     private long windowLength;
@@ -50,7 +52,25 @@ public class BaseWindowBolt extends BaseRichBolt{
         isTimeBased = istimebased;
         windowStartAddress = new LinkedList<Long>();
         windowEndAddress = new LinkedList<Long>();
-        windowingMechanism = getWindowingMechanism(windowType);
+        windowingMechanism = getWindowingMechanism(windowType); //Sachin: Not needed
+    }
+    public BaseWindowBolt(WindowObject wObject)
+    {
+        if(wObject.getWindowLength() <= 0)
+            throw new IllegalArgumentException("Window length is either null or negative");
+        else
+            windowLength = wObject.getWindowLength();
+
+        if(wObject.getSlideBy() <= 0 /*&& windowlength != slideby*/) //why cannot slideby value be same as window length. i know that is tumbling window but still it is valid
+            throw new IllegalArgumentException("Slideby should be a Positive value");
+        else
+            slideBy = wObject.getSlideBy();
+
+        isTimeBased = wObject.getIsTimeBased();
+        windowStartAddress = new LinkedList<Long>();
+        windowEndAddress = new LinkedList<Long>();
+        windowingMechanism = wObject.getWindowingMechanism();
+
     }
 
     /*    Abstract Functions   */
@@ -97,6 +117,7 @@ public class BaseWindowBolt extends BaseRichBolt{
         collector.emit("mockTickTuple",tuple, new Values("__MOCKTICKTUPLE__"));
     }
 
+    /*sachin: This method is not needed now ass this will limit the windowing mechanism to specific windows*/
     private String getWindowingMechanism(int wType)
     {
         if(wType==1)

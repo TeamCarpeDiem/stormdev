@@ -2,6 +2,7 @@ package storm.starter;
 
 /**
  * Created by Pradheep on 6/3/15.
+ * Modified by Sachin on 6/9/15. The parameters are accessed from an instance of WindowObject class.
  */
 
 import backtype.storm.Config;
@@ -12,6 +13,7 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import org.apache.log4j.Logger;
+import storm.starter.HelperClasses.WindowObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,10 +22,14 @@ public class TumblingWindow extends BaseWindowBolt implements ITumbling {
     final static Logger LOG = Logger.getLogger(TumblingWindow.class.getName());
     OutputCollector _collector;
     long count;
+    boolean isTimeBased;
+    WindowObject tumblingWindowObject;
 
-    public TumblingWindow(long windowlength, boolean istimebased) {
-        super(windowlength, istimebased);
-        count = getWindowLength();
+    public TumblingWindow(WindowObject wObject) {
+        super(wObject);
+        tumblingWindowObject = wObject;
+        count = wObject.getWindowLength(); // sachin: Not required
+        isTimeBased = wObject.getIsTimeBased(); //added by sachin
     }
 
     public void prepare(Map conf, TopologyContext context, OutputCollector collector) {
@@ -32,7 +38,9 @@ public class TumblingWindow extends BaseWindowBolt implements ITumbling {
 
     @Override
     public final void execute(Tuple tuple) {
-        if(isTimeBased()){
+        //if(isTimeBased())
+        if(isTimeBased)
+        {
         if (isTickTuple(tuple)) {
             LOG.info("~~~~~~~~Got tick tuple");
             emitMockTickTuple(_collector,tuple);
@@ -42,12 +50,13 @@ public class TumblingWindow extends BaseWindowBolt implements ITumbling {
         }}
         else
         {
-            count = count -1;
+            count = count -1; // Sachin: do not modify the original count. use temp variable. Why to increase a function call to get the window length again.
 
             if(count == 0){
                 _collector.emit("dataStream",tuple, new Values(tuple.getInteger(0)));
                 emitMockTickTuple(_collector,tuple);
-                count = getWindowLength();
+                //count = getWindowLength(); SAchin : not required. using window bolt
+                count = tumblingWindowObject.getWindowLength();
             }
             else{
                 _collector.emit("dataStream",tuple, new Values(tuple.getInteger(0)));
@@ -68,3 +77,6 @@ public class TumblingWindow extends BaseWindowBolt implements ITumbling {
         return conf;
     }
 }
+ /*
+ Sachin: please indent the code between blocks like if, for and while
+  */

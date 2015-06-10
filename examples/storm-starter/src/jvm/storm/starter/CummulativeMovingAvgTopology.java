@@ -17,6 +17,7 @@ import backtype.storm.tuple.Values;
 import backtype.storm.utils.Utils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+import storm.starter.HelperClasses.WindowObject;
 import storm.starter.spout.RandomIntegerSpout;
 
 import java.io.File;
@@ -26,6 +27,7 @@ import java.util.Map;
 
 public class CummulativeMovingAvgTopology {
     final static Logger LOG = Logger.getLogger(CummulativeMovingAvgTopology.class.getName());
+    static WindowObject wObject;
     public static class MovingAverage extends BaseRichBolt {
         OutputCollector _collector;
         int count;
@@ -71,6 +73,8 @@ public class CummulativeMovingAvgTopology {
 
     public static void main(String[] args) throws Exception {
         TopologyBuilder builder = new TopologyBuilder();
+        wObject = new WindowObject(4000, false);
+
         String log4jConfigFile = System.getProperty("user.dir")
                 + File.separator + "log4j.properties";
 
@@ -78,7 +82,7 @@ public class CummulativeMovingAvgTopology {
 
         LOG.info("Testing Count Based");
         builder.setSpout("RandomInt", new RandomIntegerSpout(), 10);
-        builder.setBolt("Tumbling", new TumblingWindow(4000,false),1).shuffleGrouping("RandomInt");
+        builder.setBolt("Tumbling", new TumblingWindow(wObject),1).shuffleGrouping("RandomInt");
         builder.setBolt("Average", new MovingAverage(), 1).shuffleGrouping("Tumbling","dataStream")
                 .shuffleGrouping("Tumbling","mockTickTuple");
 
@@ -104,9 +108,10 @@ public class CummulativeMovingAvgTopology {
 
 
         LOG.info("Testing Time Based");
+        wObject = new WindowObject(5,true);
         builder = new TopologyBuilder();
         builder.setSpout("RandomInt", new RandomIntegerSpout(), 15);
-        builder.setBolt("Tumbling", new TumblingWindow(5,true),1).shuffleGrouping("RandomInt");
+        builder.setBolt("Tumbling", new TumblingWindow(wObject),1).shuffleGrouping("RandomInt");
         builder.setBolt("Average", new MovingAverage(), 1).shuffleGrouping("Tumbling","dataStream")
                 .shuffleGrouping("Tumbling","mockTickTuple");
 

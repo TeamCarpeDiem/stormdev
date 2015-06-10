@@ -428,9 +428,103 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
+      <groupId>reply</groupId>
+      <artifactId>reply</artifactId>
+      <version>0.3.0</version>
+      <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>tools.nrepl</artifactId>
+          <groupId>org.clojure</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>clojure-complete</artifactId>
+          <groupId>clojure-complete</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
       <groupId>jline</groupId>
       <artifactId>jline</artifactId>
       <version>2.11</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.thnetos</groupId>
+      <artifactId>cd-client</artifactId>
+      <version>0.3.6</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>clj-http-lite</groupId>
+      <artifactId>clj-http-lite</artifactId>
+      <version>0.2.0</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>slingshot</groupId>
+      <artifactId>slingshot</artifactId>
+      <version>0.10.3</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>cheshire</groupId>
+      <artifactId>cheshire</artifactId>
+      <version>4.0.3</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>2.0.6</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-smile</artifactId>
+      <version>2.0.6</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.cemerick</groupId>
+      <artifactId>drawbridge</artifactId>
+      <version>0.0.6</version>
+      <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>tools.nrepl</artifactId>
+          <groupId>org.clojure</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>clj-http</groupId>
+      <artifactId>clj-http</artifactId>
+      <version>0.3.6</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>trptcolin</groupId>
+      <artifactId>versioneer</artifactId>
+      <version>0.1.0</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.clojars.trptcolin</groupId>
+      <artifactId>sjacket</artifactId>
+      <version>0.1.0.3</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.cgrand</groupId>
+      <artifactId>regex</artifactId>
+      <version>1.1.0</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.cgrand</groupId>
+      <artifactId>parsley</artifactId>
+      <version>0.9.1</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>

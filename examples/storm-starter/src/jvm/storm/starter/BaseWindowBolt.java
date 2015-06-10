@@ -27,45 +27,20 @@ public class BaseWindowBolt extends BaseRichBolt{
 
     /*   Constructors */
 
-    public BaseWindowBolt()
-    {
-        this(10, 10, true, -1);
-    }
-
-    public BaseWindowBolt(long windowlength, boolean istimebased)
-    {
-        this(windowlength, windowlength,istimebased, -1);
-    }
-
-    public BaseWindowBolt(long windowlength, long slideby, boolean istimebased, int windowType)
-    {
-        if(windowlength <= 0)
-            throw new IllegalArgumentException("Window length should be a Positive value");
-        else
-            windowLength = windowlength;
-
-        if(slideby <= 0 && windowlength != slideby)
-            throw new IllegalArgumentException("Slideby should be a Positive value");
-        else
-            slideBy = slideby;
-
-        isTimeBased = istimebased;
-        windowStartAddress = new LinkedList<Long>();
-        windowEndAddress = new LinkedList<Long>();
-        windowingMechanism = getWindowingMechanism(windowType); //Sachin: Not needed
-    }
     public BaseWindowBolt(WindowObject wObject)
     {
-        if(wObject.getWindowLength() <= 0)
+        if(wObject.getWindowLength() <= 0) {
             throw new IllegalArgumentException("Window length is either null or negative");
-        else
+        }
+        else {
             windowLength = wObject.getWindowLength();
-
-        if(wObject.getSlideBy() <= 0 /*&& windowlength != slideby*/) //why cannot slideby value be same as window length. i know that is tumbling window but still it is valid
+        }
+        if(wObject.getSlideBy() <= 0) {
             throw new IllegalArgumentException("Slideby should be a Positive value");
-        else
+        }
+        else {
             slideBy = wObject.getSlideBy();
-
+        }
         isTimeBased = wObject.getIsTimeBased();
         windowStartAddress = new LinkedList<Long>();
         windowEndAddress = new LinkedList<Long>();
@@ -117,22 +92,4 @@ public class BaseWindowBolt extends BaseRichBolt{
         collector.emit("mockTickTuple",tuple, new Values("__MOCKTICKTUPLE__"));
     }
 
-    /*sachin: This method is not needed now ass this will limit the windowing mechanism to specific windows*/
-    private String getWindowingMechanism(int wType)
-    {
-        if(wType==1)
-        {
-            return "Landmark Window";
-        }
-        if(windowLength == slideBy)
-            return "Tumbling Window";
-        else if(windowLength > slideBy)
-            return "Sliding Window";
-        else if((windowLength < slideBy) && (slideBy % windowLength == 0))
-            return "Jumping Window";
-        else if(windowLength < slideBy)
-            return "Sampling Window";
-
-        return "Unrecognized Windowing Mechanism";
-    }
 }

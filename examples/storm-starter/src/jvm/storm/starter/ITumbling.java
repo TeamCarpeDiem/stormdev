@@ -1,11 +1,12 @@
 package storm.starter;
 
-import java.io.Serializable;
-
+import backtype.storm.task.OutputCollector;
+import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Tuple;
+
+import java.io.Serializable;
 import java.util.Map;
-import backtype.storm.task.*;
 
 /**
  * Created by Pradheep on 6/9/15.
@@ -16,6 +17,5 @@ public interface ITumbling extends Serializable{
     void execute(Tuple input);
 
     void declareOutputFields(OutputFieldsDeclarer declarer);
-    //void cleanup();
 
 }

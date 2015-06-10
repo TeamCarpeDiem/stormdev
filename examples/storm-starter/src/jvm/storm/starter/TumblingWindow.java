@@ -38,7 +38,6 @@ public class TumblingWindow extends BaseWindowBolt implements ITumbling {
 
     @Override
     public final void execute(Tuple tuple) {
-        //if(isTimeBased())
         if(isTimeBased)
         {
         if (isTickTuple(tuple)) {

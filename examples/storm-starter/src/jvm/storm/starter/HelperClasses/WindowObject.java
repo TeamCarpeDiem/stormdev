@@ -1,9 +1,11 @@
 package storm.starter.HelperClasses;
 
+import java.io.Serializable;
+
 /**
  * Created by sachin on 6/9/15. Window object will be used to pass parameters related to windowing mechanism
  */
-public class WindowObject {
+public class WindowObject implements Serializable{
 
     /******* Private Variable ********/
     long windowLength;

@@ -38,27 +38,25 @@ public class TumblingWindow extends BaseWindowBolt implements ITumbling {
 
     @Override
     public final void execute(Tuple tuple) {
-        if(isTimeBased)
-        {
-        if (isTickTuple(tuple)) {
-            LOG.info("~~~~~~~~Got tick tuple");
-            emitMockTickTuple(_collector,tuple);
-        }
+        if(isTimeBased) {
+            if (isTickTuple(tuple)) {
+                LOG.info("~~~~~~~~Got tick tuple");
+                emitMockTickTuple(_collector,tuple);
+            }
+            else {
+                _collector.emit("dataStream",tuple, new Values(tuple.getValue(0)));
+            }}
         else {
-            _collector.emit("dataStream",tuple, new Values(tuple.getInteger(0)));
-        }}
-        else
-        {
             count = count -1; // Sachin: do not modify the original count. use temp variable. Why to increase a function call to get the window length again.
 
             if(count == 0){
-                _collector.emit("dataStream",tuple, new Values(tuple.getInteger(0)));
+                _collector.emit("dataStream",tuple, new Values(tuple.getValue(0)));
                 emitMockTickTuple(_collector,tuple);
                 //count = getWindowLength(); SAchin : not required. using window bolt
                 count = tumblingWindowObject.getWindowLength();
             }
             else{
-                _collector.emit("dataStream",tuple, new Values(tuple.getInteger(0)));
+                _collector.emit("dataStream",tuple, new Values(tuple.getValue(0)));
             }
         }
     }

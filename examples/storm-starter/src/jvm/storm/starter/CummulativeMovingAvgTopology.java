@@ -27,9 +27,10 @@ import java.util.Map;
 
 public class CummulativeMovingAvgTopology {
     final static Logger LOG = Logger.getLogger(CummulativeMovingAvgTopology.class.getName());
-    static WindowObject wObject;
+    //static WindowObject wObject;
     public static class MovingAverage extends BaseRichBolt {
         OutputCollector _collector;
+        //static WindowObject wObject;
         int count;
         double cma;
 
@@ -42,6 +43,7 @@ public class CummulativeMovingAvgTopology {
         @Override
         public void prepare(Map conf, TopologyContext context, OutputCollector collector) {
             _collector = collector;
+
         }
 
         @Override
@@ -73,6 +75,7 @@ public class CummulativeMovingAvgTopology {
 
     public static void main(String[] args) throws Exception {
         TopologyBuilder builder = new TopologyBuilder();
+        WindowObject wObject;
         wObject = new WindowObject(4000, false);
 
         String log4jConfigFile = System.getProperty("user.dir")

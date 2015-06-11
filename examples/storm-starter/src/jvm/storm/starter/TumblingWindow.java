@@ -3,6 +3,7 @@ package storm.starter;
 /**
  * Created by Pradheep on 6/3/15.
  * Modified by Sachin on 6/9/15. The parameters are accessed from an instance of WindowObject class.
+ * Modified for Bug Fixes on 6/11/15.
  */
 
 import backtype.storm.Config;
@@ -26,6 +27,10 @@ public class TumblingWindow extends BaseWindowBolt implements ITumbling {
     boolean isTimeBased;
     WindowObject tumblingWindowObject;
 
+    /**
+     *
+     * @param wObject Window Object
+     */
     public TumblingWindow(WindowObject wObject) {
         super(wObject);
         tumblingWindowObject = wObject;
@@ -34,10 +39,20 @@ public class TumblingWindow extends BaseWindowBolt implements ITumbling {
         isTimeBased = wObject.getIsTimeBased(); //added by sachin
     }
 
+    /**
+     *
+     * @param conf The Storm configuration for this bolt. This is the configuration provided to the topology merged in with cluster configuration on this machine.
+     * @param context This object can be used to get information about this task's place within the topology, including the task id and component id of this task, input and output information, etc.
+     * @param collector The collector is used to emit tuples from this bolt. Tuples can be emitted at any time, including the prepare and cleanup methods. The collector is thread-safe and should be saved as an instance variable of this bolt object.
+     */
     public void prepare(Map conf, TopologyContext context, OutputCollector collector) {
         _collector = collector;
     }
 
+    /**
+     *
+     * @param tuple The input tuple to be processed.
+     */
     @Override
     public final void execute(Tuple tuple) {
         if(isTimeBased) {
@@ -62,12 +77,20 @@ public class TumblingWindow extends BaseWindowBolt implements ITumbling {
         }
     }
 
+    /**
+     *
+     * @param declarer this is used to declare output stream ids, output fields, and whether or not each output stream is a direct stream
+     */
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
         declarer.declareStream("dataStream", new Fields("RandomInt"));
         declarer.declareStream("mockTickTuple", new Fields("MockTick"));
     }
 
+    /**
+     *
+     * Declare configuration specific to this component.
+     */
     @Override
     public Map<String, Object> getComponentConfiguration() {
         Map<String, Object> conf = new HashMap<String, Object>();

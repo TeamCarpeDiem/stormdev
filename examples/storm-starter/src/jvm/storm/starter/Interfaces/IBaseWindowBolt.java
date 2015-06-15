@@ -1,7 +1,7 @@
 package storm.starter.Interfaces;
 
 /**
- * Created by sachin on 6/15/15.
+ * Created by root on 6/15/15.
  */
-public class IBaseWindowBolt {
+public interface IBaseWindowBolt {
 }

@@ -87,7 +87,7 @@ public class TumblingWindow extends BaseWindowBolt implements ITumbling {
             if(count == 0){
 
                 _collector.emit("dataStream",tuple, new Values(tuple.getValue(0)));
-                emitMockTickTuple(_collector,tuple);
+                sendEndOfWindowSignal(_collector);
                 count = temp;
             }
             else{

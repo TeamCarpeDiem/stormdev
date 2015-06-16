@@ -13,7 +13,6 @@ import storm.starter.Interfaces.IBaseWindowBolt;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -80,7 +79,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
     public void prepare(Map conf, TopologyContext context, OutputCollector collector)
     {
         try {
-            fileWriter = new RandomAccessFile("//tnp//WindowContents","rw");
+            fileWriter = new RandomAccessFile("//tmp//WindowContents","rw");
             fileReader = new RandomAccessFile("//tmp//WindowContents","r");
         } catch (FileNotFoundException e) {
             e.printStackTrace();

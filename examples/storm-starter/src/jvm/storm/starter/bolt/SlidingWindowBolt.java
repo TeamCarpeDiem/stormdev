@@ -14,6 +14,7 @@ import java.util.Map;
 
 /**
  * Created by Harini Rajendran on 6/7/15.
+ * Modified by Sachin Jain on 6/13/2015. Moving emittter logic to BaseWindowBolt
  */
 
 public class SlidingWindowBolt extends BaseWindowBolt{
@@ -23,7 +24,8 @@ public class SlidingWindowBolt extends BaseWindowBolt{
     long windowEnd; //Variable which keeps track of the window end
     long tupleCount; //Variable to keep track of the tuple count for time based window
     boolean isExecutedOnce = false; //Boolean which controls thread spawning
-
+    boolean isTimeBased = false;
+    long slideBy;
     /**
      * Constructor which takes the WindowObject as the parameter
      * @param wObj Window Object specifying the window parameters and window type
@@ -34,11 +36,13 @@ public class SlidingWindowBolt extends BaseWindowBolt{
         windowStart = 1;
         windowEnd = wObj.getWindowLength();
         tupleCount = 0;
-        if(isTimeBased())
+        slideBy = wObj.getSlideBy();
+        if(wObj.getIsTimeBased())
         {
+            isTimeBased = wObj.getIsTimeBased();
             LOG.info("Window Start::" + tupleCount);
             addStartAddress(0l);
-            windowStart += getSlideByValue();
+            windowStart += wObj.getSlideBy();
         }
     }
 
@@ -63,7 +67,7 @@ public class SlidingWindowBolt extends BaseWindowBolt{
             thread.start();
             isExecutedOnce = true;
         }
-        if(isTimeBased())
+        if(isTimeBased)
         {
             if (isTickTuple(tuple)) {
                 System.out.println("Count for this second::" + secondCount);//Testing
@@ -73,12 +77,12 @@ public class SlidingWindowBolt extends BaseWindowBolt{
                 {
                     LOG.info("Window Start::" + tupleCount);
                     storeTuple(tuple, 0, 1);
-                    windowStart += getSlideByValue();
+                    windowStart += slideBy;
                 }
                 if (tupleCount == windowEnd) { //If the tuple marks the window end
                     LOG.info("Window End::" + (tupleCount));
                     storeTuple(tuple, 1, 1);
-                    windowEnd += getSlideByValue();
+                    windowEnd += slideBy;
                 }
             }
             else {
@@ -91,12 +95,12 @@ public class SlidingWindowBolt extends BaseWindowBolt{
             if (tupleCount == windowStart) {//If the tuple marks the window beginning
                 LOG.info("Window Start::" + tupleCount);
                 storeTuple(tuple, 0, 1);
-                windowStart += getSlideByValue();
+                windowStart += slideBy;
             }
             if (tupleCount == windowEnd) { //If the tuple marks the window end
                 LOG.info("Window End::" + (tupleCount));
                 storeTuple(tuple, 1, 1);
-                windowEnd += getSlideByValue();
+                windowEnd += slideBy;
             } else if(tupleCount != windowStart) //The tuple is in the middle of a window
                 storeTuple(tuple, -1, 1);
         }
@@ -127,7 +131,7 @@ public class SlidingWindowBolt extends BaseWindowBolt{
      * Declare configuration specific to this component.
      */
     public Map<String, Object> getComponentConfiguration() {
-        if(isTimeBased()) {
+        if(isTimeBased) {
             Map<String, Object> conf = new HashMap<String, Object>();
             conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, 1);
             return conf;

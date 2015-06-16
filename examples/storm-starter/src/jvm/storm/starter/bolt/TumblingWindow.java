@@ -7,7 +7,6 @@ package storm.starter.bolt;
  */
 
 import backtype.storm.Config;
-import backtype.storm.Constants;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
@@ -16,14 +15,13 @@ import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import org.apache.log4j.Logger;
 import storm.starter.HelperClasses.WindowObject;
-import storm.starter.Interfaces.ITumbling;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class TumblingWindow extends BaseWindowBolt implements ITumbling {
+public class TumblingWindow extends BaseWindowBolt{
     final static Logger LOG = Logger.getLogger(TumblingWindow.class.getName());
     protected OutputCollector _collector;
     long count;
@@ -31,6 +29,7 @@ public class TumblingWindow extends BaseWindowBolt implements ITumbling {
     boolean isTimeBased;
     WindowObject tumblingWindowObject;
     boolean isExecutedOnce = false;
+    long wLength;
 
   //  MyRunnable myRunnable; //temp
   //  Thread t; //temp
@@ -46,6 +45,7 @@ public class TumblingWindow extends BaseWindowBolt implements ITumbling {
         tumblingWindowObject = wObject;
         count = wObject.getWindowLength();
         temp = wObject.getWindowLength();
+        wLength = wObject.getWindowLength();
         isTimeBased = wObject.getIsTimeBased();
     }
 
@@ -116,7 +116,7 @@ public class TumblingWindow extends BaseWindowBolt implements ITumbling {
     @Override
     public Map<String, Object> getComponentConfiguration() {
         Map<String, Object> conf = new HashMap<String, Object>();
-        conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS,getWindowLength());
+        conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS,wLength);
         return conf;
     }
 

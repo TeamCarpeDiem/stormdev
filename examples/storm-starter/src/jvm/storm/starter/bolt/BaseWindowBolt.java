@@ -8,6 +8,7 @@ import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import storm.starter.HelperClasses.WindowObject;
+import storm.starter.Interfaces.IBaseWindowBolt;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -23,7 +24,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * Created by Harini Rajendran on 6/3/15.
  */
 
-public class BaseWindowBolt extends BaseRichBolt{
+public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
     OutputCollector _collector;
     private long windowLength;
     private long slideBy;
@@ -94,51 +95,12 @@ public class BaseWindowBolt extends BaseRichBolt{
     {
     }
 
-    /*  Getter and Setter Functions  */
-
-    /**
-     * This function is used to get the length of the window
-     *
-     * @return windowLength
-     */
-    protected long getWindowLength()
-    {
-        return windowLength;
-    }
-
-    /**
-     * This function is used to get the Slide by value
-     * @return slideBy
-     */
-    protected long getSlideByValue()
-    {
-        return slideBy;
-    }
-
-    protected boolean isTimeBased()
-    {
-        return isTimeBased;
-    }
-
-    protected void setWindowingMechanism(String mechanism)
-    {
-        windowingMechanism = mechanism;
-    }
-
-    protected boolean isTickTuple(Tuple tuple) {
+    @Override
+    public boolean isTickTuple(Tuple tuple) {
         return tuple.getSourceComponent().equals(Constants.SYSTEM_COMPONENT_ID)
                 && tuple.getSourceStreamId().equals(Constants.SYSTEM_TICK_STREAM_ID);
     }
 
-    protected String getWindowingMechanism()
-    {
-        return windowingMechanism;
-    }
-
-    private String getWindowingMechanism(int wType)
-    {
-        return windowingMechanism;
-    }
 
     protected void sendEndOfWindowSignal(OutputCollector collector)
     {
@@ -157,7 +119,8 @@ public class BaseWindowBolt extends BaseRichBolt{
         }
     }
 
-    protected void storeTuple(Tuple tuple, int flag, int count)
+    @Override
+    public void storeTuple(Tuple tuple, int flag, int count)
     {
         try {
             if (flag == 0) {
@@ -176,7 +139,7 @@ public class BaseWindowBolt extends BaseRichBolt{
                 bufferIndex = 0;
             }
 
-            if((!isTimeBased() && flag != 0) || (isTimeBased() && flag == -1)) {
+            if((!isTimeBased && flag != 0) || (isTimeBased && flag == -1)) {
                 String obj = tuple.getString(0);
                 byte[] bytes = obj.getBytes();
                 int len = bytes.length;
@@ -206,7 +169,8 @@ public class BaseWindowBolt extends BaseRichBolt{
         }
     }
 
-    protected void initiateEmitter(OutputCollector baseCollector)
+    @Override
+    public void initiateEmitter(OutputCollector baseCollector)
     {
         _collector = baseCollector;
         readTuplesFromDisk();

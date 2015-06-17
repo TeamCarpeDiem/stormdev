@@ -28,6 +28,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
     private long windowLength;
     private long slideBy;
     private String windowingMechanism; //A String to set the type of windowing mechanism
+    private String FILEPATH = System.getProperty("user.home")+"//WindowsContent";
 
     protected BlockingQueue<Long> _windowStartAddress;
     protected BlockingQueue<Long> _windowEndAddress;
@@ -79,8 +80,8 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
     public void prepare(Map conf, TopologyContext context, OutputCollector collector)
     {
         try {
-            fileWriter = new RandomAccessFile("//tmp//WindowContents","rw");
-            fileReader = new RandomAccessFile("//tmp//WindowContents","r");
+            fileWriter = new RandomAccessFile(FILEPATH,"rw");
+            fileReader = new RandomAccessFile(FILEPATH,"r");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -172,42 +173,59 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
     public void initiateEmitter(OutputCollector baseCollector)
     {
         _collector = baseCollector;
-        readTuplesFromDisk();
+        try {
+            readTuplesFromDisk();
+        }
+        catch(IOException ex)
+        {
+            ex.printStackTrace();
+        }
     }
 
-    private void readTuplesFromDisk()
-    {
+    private void readTuplesFromDisk() throws IOException {
         long startOffset = 0;
         long endOffset = 0;
-        int bufferSize = 100*1024*1024;
+        int bufferSize = 100 * 1024 * 1024;
         int bufferIndex = -1;
-        while(!_windowStartAddress.isEmpty() && !_windowEndAddress.isEmpty()) {
-            startOffset = _windowStartAddress.remove();
-            endOffset = _windowEndAddress.remove();
-            do {
-                if (endOffset - startOffset < bufferSize) {
+        int flag = 0;
 
-                    try {
-                        fileReader.seek(startOffset);
-                        bufferIndex = (int) (endOffset - startOffset + 1);
-                        fileReader.read(readBuffer, 0 , bufferIndex);
-                        startOffset = emitTuples(0, bufferIndex);
-                        sendEndOfWindowSignal(_collector);
-                        break;
-                    } catch (IOException e) {
-                        e.printStackTrace();
+        while (true) {
+            while ((!_windowEndAddress.isEmpty() || (fileWriter.getFilePointer() - fileReader.getFilePointer()) >= bufferSize)) {
+
+                if (flag == 0) {
+                    while (_windowStartAddress.isEmpty()) ;
+                    startOffset = _windowStartAddress.remove();
+                    //System.out.println("Start Offset ::" + startOffset);
+                }
+                if (!_windowEndAddress.isEmpty()) {
+                    if ((_windowEndAddress.peek() - startOffset) < bufferSize) {
+                        //System.out.println("Window end within buffer");
+                        endOffset = _windowEndAddress.remove();
+                        flag = 0;
+                    } else {
+                        //System.out.println("Window end beyond 100 MB");
+                        endOffset = startOffset + bufferSize;
+                        flag = 1;
                     }
                 } else {
-                    try {
-                        fileReader.seek(startOffset);
-                        bufferIndex = bufferSize - 1;
-                        fileReader.read(readBuffer, 0, bufferIndex);
-                        startOffset += emitTuples(0, bufferSize-1);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    //System.out.println("Window End still not received");
+                    endOffset = startOffset + bufferSize;
+                    flag = 1;
                 }
-            }while(true);
+
+                try {
+                    fileReader.seek(startOffset);
+                    bufferIndex = (int) (endOffset - startOffset);
+                    bufferIndex = fileReader.read(readBuffer, 0, bufferIndex);
+                    startOffset += emitTuples(0, bufferIndex-1);
+                    if (flag == 0) {
+                        //System.out.println("Sending Mock Tuple");
+                        sendEndOfWindowSignal(_collector);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -235,5 +253,11 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
             start = nextStart;
         }
         return start;
+    }
+
+    @Override
+    public void cleanup() {
+        writeBuffer = null;
+        readBuffer = null;
     }
 }

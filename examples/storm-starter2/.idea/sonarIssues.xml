@@ -13,6 +13,16 @@
             <set />
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/../storm-starter/src/jvm/storm/starter/Interfaces/IBaseWindowBolt.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../storm-starter/src/jvm/storm/starter/Interfaces/IWindowBolt.java">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/../storm-starter/src/jvm/storm/starter/bolt/BaseWindowBolt.java">
           <value>
             <set />

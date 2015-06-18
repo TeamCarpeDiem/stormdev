@@ -1,7 +1,11 @@
 package storm.starter.Interfaces;
 
 import backtype.storm.task.OutputCollector;
+import backtype.storm.task.TopologyContext;
+import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Tuple;
+
+import java.util.Map;
 
 /**
  * Created by sachin on 6/15/15.
@@ -32,4 +36,8 @@ public interface IBaseWindowBolt {
      * @param baseCollector
      */
     void initiateEmitter(OutputCollector baseCollector);
+
+
+
+
 }

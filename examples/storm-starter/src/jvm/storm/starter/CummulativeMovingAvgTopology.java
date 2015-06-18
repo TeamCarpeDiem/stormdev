@@ -60,11 +60,11 @@ public class CummulativeMovingAvgTopology {
         Config conf = new Config();
         conf.setDebug(false);
         LOG.info("Testing Time Based");
-        //wObject = new WindowObject("sliding",10,2,true);
-        wObject = new WindowObject("tumbling",4000,true);
+        wObject = new WindowObject("sliding",10,2,true);
+        //wObject = new WindowObject("tumbling",4000,true);
         builder = new TopologyBuilder();
         builder.setSpout("RandomInt", new RandomIntegerSpout(), 15);
-        builder.setBolt("tumbling", wObject.CreateWindow(),1).shuffleGrouping("RandomInt");
+        //builder.setBolt("tumbling", wObject.CreateWindow(),1).shuffleGrouping("RandomInt");
         builder.setBolt("Sliding", wObject.CreateWindow(),1).shuffleGrouping("RandomInt");
         //builder.setBolt("Sliding", new SlidingWindowBolt(wObject),1).shuffleGrouping("RandomInt");
         builder.setBolt("Average", new MovingAverageBolt(), 1).shuffleGrouping("Sliding","dataStream")

@@ -80,7 +80,7 @@ public class TumblingWindow extends BaseWindowBolt{
         if(isTimeBased) {
             if (isTickTuple(tuple)) {
                 LOG.info("~~~~~~~~Got tick tuple");
-                //bQueue.add(tuple);
+                bQueue.add(tuple);
                 // emitMockTickTuple(_collector,tuple);
             }
             else {

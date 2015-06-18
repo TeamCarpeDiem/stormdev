@@ -133,7 +133,7 @@ public class WindowObject implements Serializable{
             window = new TumblingWindow(windowLength, isTimeBased);
         }
 
-        if(windowingMechanism.equals("Sliding")) {
+        if(windowingMechanism.equals("sliding")) {
             window = new SlidingWindowBolt(windowLength, slideBy, isTimeBased);
         }
         /*if(windowingMechanism.equals(“landmark”)

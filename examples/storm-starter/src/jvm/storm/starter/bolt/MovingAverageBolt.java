@@ -10,13 +10,15 @@ import backtype.storm.tuple.Values;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+import storm.starter.Interfaces.IBaseWindowBolt;
+import storm.starter.Interfaces.IWindowBolt;
 
 import java.util.Map;
 
 /**
  * Created by sachin on 6/11/15. //Test bolt to verify tumbling window
  */
-public class MovingAverageBolt extends BaseRichBolt {
+public class MovingAverageBolt extends BaseRichBolt implements IWindowBolt {
     final static Logger LOG = Logger.getLogger(MovingAverageBolt.class.getName());
     OutputCollector _collector;
     //static WindowObject wObject;
@@ -47,8 +49,8 @@ public class MovingAverageBolt extends BaseRichBolt {
             cma = 0;
         }
         else {
-            cma = cma + tuple.getInteger(0);
-            //cma = cma + 1;
+            //cma = cma + tuple.getInteger(0);
+            cma = cma + 1;
             count++;
         }
     }
@@ -58,7 +60,7 @@ public class MovingAverageBolt extends BaseRichBolt {
         declarer.declare(new Fields("Average"));
     }
 
-    protected static boolean isMockTick(Tuple tuple) {
+    public boolean isMockTick(Tuple tuple) {
         return tuple.getSourceStreamId().equals("mockTickTuple");
     }
 }

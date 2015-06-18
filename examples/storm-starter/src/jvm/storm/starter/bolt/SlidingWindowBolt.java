@@ -26,11 +26,11 @@ public class SlidingWindowBolt extends BaseWindowBolt{
     boolean isExecutedOnce = false; //Boolean which controls thread spawning
     boolean isTimeBased = false;
     long slideBy;
-    /**
+    /*/**
      * Constructor which takes the WindowObject as the parameter
      * @param wObj Window Object specifying the window parameters and window type
      */
-    public SlidingWindowBolt(WindowObject wObj)
+    /*public SlidingWindowBolt(WindowObject wObj)
     {
         super(wObj);
         windowStart = 1;
@@ -43,6 +43,21 @@ public class SlidingWindowBolt extends BaseWindowBolt{
             LOG.info("Window Start::" + tupleCount);
             addStartAddress(0l);
             windowStart += wObj.getSlideBy();
+        }
+    }*/
+
+    public SlidingWindowBolt(long wlength, long slideby, boolean istimebased){
+        super(wlength, slideby, istimebased);
+        windowStart = 1;
+        windowEnd = wlength;
+        tupleCount = 0;
+        slideBy = slideby;
+        if(istimebased)
+        {
+            isTimeBased = istimebased;
+            LOG.info("Window Start::" + tupleCount);
+            addStartAddress(0l);
+            windowStart += slideby;
         }
     }
 

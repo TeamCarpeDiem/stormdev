@@ -27,7 +27,7 @@ public class TumblingWindow extends BaseWindowBolt{
     long count;
     long temp;
     boolean isTimeBased;
-    WindowObject tumblingWindowObject;
+    //WindowObject tumblingWindowObject;
     boolean isExecutedOnce = false;
     long wLength;
 
@@ -40,13 +40,19 @@ public class TumblingWindow extends BaseWindowBolt{
      *
      * @param wObject Window Object
      */
-    public TumblingWindow(WindowObject wObject) {
+    /*public TumblingWindow(WindowObject wObject) {
         super(wObject);
         tumblingWindowObject = wObject;
         count = wObject.getWindowLength();
         temp = wObject.getWindowLength();
         wLength = wObject.getWindowLength();
         isTimeBased = wObject.getIsTimeBased();
+    }*/
+
+    public TumblingWindow(long wlength, boolean istimebased){
+        super(wlength, istimebased);
+        count = wlength;
+        temp = wlength;
     }
 
     /**
@@ -74,7 +80,7 @@ public class TumblingWindow extends BaseWindowBolt{
         if(isTimeBased) {
             if (isTickTuple(tuple)) {
                 LOG.info("~~~~~~~~Got tick tuple");
-                bQueue.add(tuple);
+                //bQueue.add(tuple);
                 // emitMockTickTuple(_collector,tuple);
             }
             else {

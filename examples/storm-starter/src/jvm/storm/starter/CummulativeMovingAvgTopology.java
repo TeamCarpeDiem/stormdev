@@ -15,6 +15,7 @@ import storm.starter.bolt.MovingAverageBolt;
 import storm.starter.bolt.SlidingWindowBolt;
 import storm.starter.bolt.TumblingWindow;
 import storm.starter.spout.RandomIntegerSpout;
+import storm.starter.spout.RandomSentenceSpout;
 
 import java.io.File;
 
@@ -23,7 +24,7 @@ public class CummulativeMovingAvgTopology {
     public static void main(String[] args) throws Exception {
         TopologyBuilder builder = new TopologyBuilder();
         WindowObject wObject;
-        wObject = new WindowObject(4000, false);
+       // wObject = new WindowObject(4000, false);
 
         String log4jConfigFile = System.getProperty("user.dir")
                 + File.separator + "log4j.properties";
@@ -59,10 +60,13 @@ public class CummulativeMovingAvgTopology {
         Config conf = new Config();
         conf.setDebug(false);
         LOG.info("Testing Time Based");
-        wObject = new WindowObject(10,2,true);
+        //wObject = new WindowObject("sliding",10,2,true);
+        wObject = new WindowObject("tumbling",4000,true);
         builder = new TopologyBuilder();
         builder.setSpout("RandomInt", new RandomIntegerSpout(), 15);
-        builder.setBolt("Sliding", new SlidingWindowBolt(wObject),1).shuffleGrouping("RandomInt");
+        builder.setBolt("tumbling", wObject.CreateWindow(),1).shuffleGrouping("RandomInt");
+        builder.setBolt("Sliding", wObject.CreateWindow(),1).shuffleGrouping("RandomInt");
+        //builder.setBolt("Sliding", new SlidingWindowBolt(wObject),1).shuffleGrouping("RandomInt");
         builder.setBolt("Average", new MovingAverageBolt(), 1).shuffleGrouping("Sliding","dataStream")
                 .shuffleGrouping("Sliding","mockTickTuple");
 

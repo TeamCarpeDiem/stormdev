@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="issues">
+    <option name="index">
+      <map>
+        <entry key="$PROJECT_DIR$/../storm-starter/src/jvm/storm/starter/CummulativeMovingAvgTopology.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../storm-starter/src/jvm/storm/starter/HelperClasses/WindowObject.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../storm-starter/src/jvm/storm/starter/bolt/BaseWindowBolt.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../storm-starter/src/jvm/storm/starter/bolt/MovingAverageBolt.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../storm-starter/src/jvm/storm/starter/bolt/SlidingWindowBolt.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../storm-starter/src/jvm/storm/starter/bolt/TumblingWindow.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../storm-starter/src/jvm/storm/starter/spout/RandomIntegerSpout.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

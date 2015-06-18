@@ -1,5 +1,9 @@
 package storm.starter.HelperClasses;
 
+import storm.starter.bolt.BaseWindowBolt;
+import storm.starter.bolt.SlidingWindowBolt;
+import storm.starter.bolt.TumblingWindow;
+
 import java.io.Serializable;
 
 /**
@@ -21,15 +25,17 @@ public class WindowObject implements Serializable{
         slideBy = -1;
     }
 
-    public WindowObject(long wLength,boolean isTBased)
+    public WindowObject(String type, long wLength,boolean isTBased)
     {
+        windowingMechanism = type;
         windowLength= wLength;
-        slideBy = wLength; //by default it is a tumbling window
+        //slideBy = wLength; //by default it is a tumbling window
         isTimeBased= isTBased;
     }
 
-    public WindowObject(long wLength, long slideB, boolean isTBased)
+    public WindowObject(String type, long wLength, long slideB, boolean isTBased)
     {
+        windowingMechanism = type;
         windowLength= wLength;
         slideBy = slideB;
         isTimeBased= isTBased;
@@ -118,4 +124,21 @@ public class WindowObject implements Serializable{
         windowingMechanism = windowName;
     }
     /******* End of Getter and Setter ********/
+
+    public BaseWindowBolt CreateWindow(){
+
+        BaseWindowBolt window = null;
+
+        if(windowingMechanism.equals("tumbling")){
+            window = new TumblingWindow(windowLength, isTimeBased);
+        }
+
+        if(windowingMechanism.equals("Sliding")) {
+            window = new SlidingWindowBolt(windowLength, slideBy, isTimeBased);
+        }
+        /*if(windowingMechanism.equals(“landmark”)
+            window = new LandmarkWindow(windowlength, slideBy, isTimeBased);*/
+
+        return window;
+    }
 }

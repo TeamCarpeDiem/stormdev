@@ -30,8 +30,10 @@ public class RandomIntegerSpout extends BaseRichSpout {
     @Override
     public void nextTuple() {
         Utils.sleep(1);
+        //String text = "dasdasdsadsadsdasdfgfdgfdg";
         int randomNum = _rand.nextInt((9 - 0) + 1) + 0;
         //int randomNum = 1;
+        //_collector.emit(new Values(text));
         _collector.emit(new Values(randomNum));
     }
 

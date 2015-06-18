@@ -46,7 +46,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
 
     /*   Constructors */
 
-    public BaseWindowBolt(WindowObject wObject)
+   /* public BaseWindowBolt(WindowObject wObject)
     {
         if(wObject.getWindowLength() <= 0) {
             throw new IllegalArgumentException("Window length is either null or negative");
@@ -65,15 +65,54 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
         _windowEndAddress = new LinkedBlockingQueue<Long>();
         windowingMechanism = wObject.getWindowingMechanism();
 
-        writeBuffer = new byte[100*1024*1024]; //Write Buffer size 100 MB
-        readBuffer = new byte[100*1024*1024]; // Read Buffer size 100 MB
+        writeBuffer = new byte[10*1024*1024]; //Write Buffer size 100 MB
+        readBuffer = new byte[10*1024*1024]; // Read Buffer size 100 MB
 
         bufferIndex = 0;
         secondCount = 0;
 
+    }*/
+
+    public BaseWindowBolt(long wLength, boolean isTBased){
+        //windowType = type;
+        if(wLength <= 0) {
+            throw new IllegalArgumentException("Window length is either null or negative");
+        }
+        else {
+            windowLength = wLength;
+        }
+        //slideBy = slideby;
+        isTimeBased = isTBased;
     }
 
+    public BaseWindowBolt(long wLength, long slideby, boolean isTBased){
+        //windowType = type;
+        windowLength = wLength;
+        slideBy = slideby;
+        isTimeBased = isTBased;
+        if(wLength <= 0) {
+            throw new IllegalArgumentException("Window length is either null or negative");
+        }
+        else {
+            windowLength = wLength;
+        }
+        if(slideby <= 0) {
+            throw new IllegalArgumentException("Slideby should be a Positive value");
+        }
+        else {
+            slideBy = slideby;
+        }
+        isTimeBased = isTBased;
+        _windowStartAddress = new LinkedBlockingQueue<Long>();
+        _windowEndAddress = new LinkedBlockingQueue<Long>();
+       // windowingMechanism = wObject.getWindowingMechanism();
 
+        writeBuffer = new byte[10*1024*1024]; //Write Buffer size 100 MB
+        readBuffer = new byte[10*1024*1024]; // Read Buffer size 100 MB
+
+        bufferIndex = 0;
+        secondCount = 0;
+    }
 
 
     /*    Abstract Functions   */
@@ -185,7 +224,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
     private void readTuplesFromDisk() throws IOException {
         long startOffset = 0;
         long endOffset = 0;
-        int bufferSize = 100 * 1024 * 1024;
+        int bufferSize = 10 * 1024 * 1024;
         int bufferIndex = -1;
         int flag = 0;
 

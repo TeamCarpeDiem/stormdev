@@ -92,17 +92,18 @@ public class SlidingWindowBolt extends BaseWindowBolt{
         }
         else {
             tupleCount++;
+            if(tupleCount != windowStart && tupleCount != windowEnd) //The tuple is in the middle of a window
+                storeTuple(tuple, -1, 1);
+            if (tupleCount == windowEnd) { //If the tuple marks the window end
+               //LOG.info("Window End::" + (tupleCount));
+                storeTuple(tuple, 1, 1);
+                windowEnd += slideBy;
+            }
             if (tupleCount == windowStart) {//If the tuple marks the window beginning
-                LOG.info("Window Start::" + tupleCount);
+               //LOG.info("Window Start::" + tupleCount);
                 storeTuple(tuple, 0, 1);
                 windowStart += slideBy;
             }
-            if (tupleCount == windowEnd) { //If the tuple marks the window end
-                LOG.info("Window End::" + (tupleCount));
-                storeTuple(tuple, 1, 1);
-                windowEnd += slideBy;
-            } else if(tupleCount != windowStart) //The tuple is in the middle of a window
-                storeTuple(tuple, -1, 1);
         }
     }
 

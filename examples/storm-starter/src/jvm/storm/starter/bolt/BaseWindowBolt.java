@@ -433,11 +433,9 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
 
         fileReader.seek(sOffset);
         int length = (int) (eOffset - sOffset + 1);
-        //byte[] tempArray = new byte[length];
+
         try {
-          //  length = fileReader.read(tempArray, 0, length);
             length = fileReader.read(readBuffer, index, length);
-          //  System.arraycopy(tempArray, 0, readBuffer, index, tempArray.length);
         }
         catch(Exception ex)
         {

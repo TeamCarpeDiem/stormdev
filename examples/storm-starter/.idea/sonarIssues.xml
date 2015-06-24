@@ -13,7 +13,22 @@
             <set />
           </value>
         </entry>
-        <entry key="$PROJECT_DIR$/src/jvm/storm/starter/TumblingWindow.java">
+        <entry key="$PROJECT_DIR$/src/jvm/storm/starter/WindowTopologyBuilder.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/jvm/storm/starter/bolt/MovingAverageBolt.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/jvm/storm/starter/bolt/SlidingWindowBolt.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/jvm/storm/starter/bolt/TumblingWindow.java">
           <value>
             <set />
           </value>

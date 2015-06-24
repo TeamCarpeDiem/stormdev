@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/examples/storm-starter" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/external/storm-hbase" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/external/storm-hdfs" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/external/storm-kafka" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/storm-buildtools/maven-shade-clojure-transformer" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/storm-core" charset="UTF-8" />
+  </component>
+</project>

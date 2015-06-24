@@ -125,12 +125,15 @@ public class WindowObject implements Serializable{
     }
     /******* End of Getter and Setter ********/
 
-    public BaseWindowBolt CreateWindow(){
+    public BaseWindowBolt CreateWindow() throws Exception {
 
         BaseWindowBolt window = null;
 
         if(windowingMechanism.equals("tumbling")){
-            window = new TumblingWindow(windowLength, isTimeBased);
+            if (windowLength == slideBy)
+                window = new SlidingWindowBolt(windowLength, slideBy, isTimeBased);
+            else
+                throw new Exception("Window Length and Slide By Values are not same");
         }
 
         if(windowingMechanism.equals("sliding")) {

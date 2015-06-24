@@ -7,6 +7,7 @@ import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.topology.TopologyBuilder;
+import storm.starter.WindowTopologyBuilder;
 import backtype.storm.utils.Utils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -22,7 +23,8 @@ import java.io.File;
 public class CummulativeMovingAvgTopology {
     final static Logger LOG = Logger.getLogger(CummulativeMovingAvgTopology.class.getName());
     public static void main(String[] args) throws Exception {
-        TopologyBuilder builder = new TopologyBuilder();
+        //TopologyBuilder builder = new TopologyBuilder();
+        WindowTopologyBuilder builder = new WindowTopologyBuilder();
         WindowObject wObject;
        // wObject = new WindowObject(4000, false);
 
@@ -61,14 +63,14 @@ public class CummulativeMovingAvgTopology {
         conf.setDebug(false);
         LOG.info("Testing Time Based");
         wObject = new WindowObject("sliding",10,2,true);
-        //wObject = new WindowObject("tumbling",4000,true);
-        builder = new TopologyBuilder();
+        //wObject = new WindowObject("tumbling",10,10,true);
         builder.setSpout("RandomInt", new RandomIntegerSpout(), 15);
-        //builder.setBolt("tumbling", wObject.CreateWindow(),1).shuffleGrouping("RandomInt");
-        builder.setBolt("Sliding", wObject.CreateWindow(),1).shuffleGrouping("RandomInt");
-        //builder.setBolt("Sliding", new SlidingWindowBolt(wObject),1).shuffleGrouping("RandomInt");
+        builder.setBolt("Tumbling", wObject.CreateWindow(),1).shuffleGrouping("RandomInt");
+        //builder.setBolt("Sliding", wObject.CreateWindow(),1).shuffleGrouping("RandomInt");
         builder.setBolt("Average", new MovingAverageBolt(), 1).shuffleGrouping("Sliding","dataStream")
                 .shuffleGrouping("Sliding","mockTickTuple");
+        //builder.setBolt("Average", new MovingAverageBolt(), 1).shuffleGrouping("Tumbling", "dataStream")
+        //        .shuffleGrouping("Tumbling","mockTickTuple");
 
         if (args != null && args.length > 0) {
             conf.setNumWorkers(1);

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/storm-buildtools/maven-shade-clojure-transformer/maven-shade-clojure-transformer.iml" filepath="$PROJECT_DIR$/storm-buildtools/maven-shade-clojure-transformer/maven-shade-clojure-transformer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/storm.iml" filepath="$PROJECT_DIR$/storm.iml" />
+      <module fileurl="file://$PROJECT_DIR$/storm-core/storm-core.iml" filepath="$PROJECT_DIR$/storm-core/storm-core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/external/storm-hbase/storm-hbase.iml" filepath="$PROJECT_DIR$/external/storm-hbase/storm-hbase.iml" />
+      <module fileurl="file://$PROJECT_DIR$/external/storm-hdfs/storm-hdfs.iml" filepath="$PROJECT_DIR$/external/storm-hdfs/storm-hdfs.iml" />
+      <module fileurl="file://$PROJECT_DIR$/external/storm-kafka/storm-kafka.iml" filepath="$PROJECT_DIR$/external/storm-kafka/storm-kafka.iml" />
+      <module fileurl="file://$PROJECT_DIR$/examples/storm-starter/storm-starter.iml" filepath="$PROJECT_DIR$/examples/storm-starter/storm-starter.iml" />
+    </modules>
+  </component>
+</project>

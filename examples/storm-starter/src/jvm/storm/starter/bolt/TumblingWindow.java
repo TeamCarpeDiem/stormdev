@@ -15,13 +15,14 @@ import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import org.apache.log4j.Logger;
 import storm.starter.HelperClasses.WindowObject;
+import storm.starter.Interfaces.IWindowBolt;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class TumblingWindow extends BaseWindowBolt{
+public class TumblingWindow extends BaseWindowBolt implements IWindowBolt{
     final static Logger LOG = Logger.getLogger(TumblingWindow.class.getName());
     protected OutputCollector _collector;
     long count;
@@ -122,8 +123,12 @@ public class TumblingWindow extends BaseWindowBolt{
     @Override
     public Map<String, Object> getComponentConfiguration() {
         Map<String, Object> conf = new HashMap<String, Object>();
-        conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS,wLength);
+        conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, wLength);
         return conf;
+    }
+
+    public boolean isMockTick(Tuple tuple){
+        return true;
     }
 
 }

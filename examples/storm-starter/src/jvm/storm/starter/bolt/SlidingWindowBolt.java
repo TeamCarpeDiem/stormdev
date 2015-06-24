@@ -8,6 +8,7 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import org.apache.log4j.Logger;
 import storm.starter.HelperClasses.WindowObject;
+import storm.starter.Interfaces.IWindowBolt;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +18,7 @@ import java.util.Map;
  * Modified by Sachin Jain on 6/13/2015. Moving emittter logic to BaseWindowBolt
  */
 
-public class SlidingWindowBolt extends BaseWindowBolt{
+public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
     final static Logger LOG = Logger.getLogger(TumblingWindow.class.getName());
     OutputCollector _collector;
     long windowStart; //Variable which keeps track of the window start
@@ -152,5 +153,9 @@ public class SlidingWindowBolt extends BaseWindowBolt{
             return conf;
         }
         return null;
+    }
+
+    public boolean isMockTick(Tuple tuple){
+        return true;
     }
 }

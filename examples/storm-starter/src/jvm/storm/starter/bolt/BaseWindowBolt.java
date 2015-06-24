@@ -31,10 +31,10 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
     private long slideBy;
     private String windowingMechanism; //A String to set the type of windowing mechanism
     private String FILEPATH = System.getProperty("user.home")+"//WindowsContent";
-    private long MAXFILESIZE = ((1l * 1024 * 1024 * 1024) - 1)/2;
-    private final int bufferSize = 100 * 1024 * 1024;
-    private final int WRITEBUFFERSIZE = 100 * 1024 * 1024;
-    private final int READBUFFERSIZE = 100 * 1024 * 1024;
+    private long MAXFILESIZE = ((5l * 1024 * 1024 * 1024) - 1);
+    private final int WRITEBUFFERSIZE = 50 * 1024 * 1024;
+    private final int READBUFFERSIZE = 250 * 1024 * 1024;
+    private final int bufferSize = 250 * 1024 * 1024;
     private final double percentage = 0.75;
 
     protected BlockingQueue<Long> _windowStartAddress;
@@ -78,6 +78,8 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
 
         bufferIndex = 0;
         secondCount = 0;
+
+        System.out.println("!!!!!!!!!!!MAXFILESIZE is::" + MAXFILESIZE);
 
     }
 
@@ -146,7 +148,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                 //System.out.println(" 146 not updated file pointer:" + fileWriter.getFilePointer());
                 writeInParts(writeBuffer,0,bufferIndex);
                 if(fileWriter.getFilePointer() > MAXFILESIZE) {
-                    System.out.println(" 138 insert Start file pointer:" + fileWriter.getFilePointer());
+                //    System.out.println(" 138 insert Start file pointer:" + fileWriter.getFilePointer());
                 }
 
                 //    Arrays.fill(writeBuffer, 0, bufferIndex, (byte) 0);
@@ -181,7 +183,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                 //System.out.println(" 187 not updated file pointer:" + fileWriter.getFilePointer());
                 writeInParts(writeBuffer,0,bufferIndex);
                 if(fileWriter.getFilePointer() > MAXFILESIZE) {
-                    System.out.println(" 173 insert end file pointer:" + fileWriter.getFilePointer());
+                  //  System.out.println(" 173 insert end file pointer:" + fileWriter.getFilePointer());
                 }
 
                 //Arrays.fill(writeBuffer, 0, bufferIndex, (byte) 0);
@@ -193,13 +195,13 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                 }
             }
 
-            if(bufferIndex >= bufferSize*percentage) //If the buffer is 75% full
+            if(bufferIndex >= WRITEBUFFERSIZE*percentage) //If the buffer is 75% full
             {
 
                 //    System.out.println(" 207 not updated file pointer:" + fileWriter.getFilePointer() + "BufferSize:" + bufferIndex);
                 writeInParts(writeBuffer,0,bufferIndex);
                 if(fileWriter.getFilePointer() > MAXFILESIZE) {
-                    System.out.println(" 191 updated file pointer:" + fileWriter.getFilePointer());
+                    //System.out.println(" 191 updated file pointer:" + fileWriter.getFilePointer());
                 }
                 bufferIndex = 0;
             }
@@ -212,13 +214,13 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
 
     private void writeInParts(byte[] buffer, int startIndex, int length) throws IOException
     {
-        int remainingSpace = (int)(MAXFILESIZE - fileWriter.getFilePointer());
+        long remainingSpace = (MAXFILESIZE - fileWriter.getFilePointer());
         if(length <= remainingSpace)
             fileWriter.write(writeBuffer, startIndex, length);
         else {
-            fileWriter.write(writeBuffer, startIndex, remainingSpace);
+            fileWriter.write(writeBuffer, startIndex, (int)remainingSpace);
             fileWriter.seek(0);
-            fileWriter.write(writeBuffer, remainingSpace, length - remainingSpace);
+            fileWriter.write(writeBuffer, (int)remainingSpace, length - (int)remainingSpace);
         }
     }
 
@@ -227,7 +229,6 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
     {
         _collector = baseCollector;
         try {
-            while(true)
                 populateReadBuffer();
         }
         catch(IOException ex)
@@ -247,24 +248,22 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
         int count =0;
         while(start < end) {
             if(start+1 > end) {
-                System.out.println("2000009::: Count is "+ count);
+                //System.out.println("2000009::: Count is "+ count);
                 return start;
             }
             int tupleLength = getIntFromTwoBytes(readBuffer[start], readBuffer[start+1]);
             nextStart = start + 2 + tupleLength;
 
             if(nextStart-1 > end) {
-                System.out.println("29800009::: Count is "+ count);
+                //System.out.println("29800009::: Count is "+ count);
                 return start;
             }
             byte[] tempArray = Arrays.copyOfRange(readBuffer, start+2, nextStart);
             String tupleData = new String(tempArray);
             _collector.emit("dataStream", new Values(tupleData));
             count++;
-            if(nextStart == fileWriter.length())
-                start = 0;
-            else
-                start = nextStart;
+
+            start = nextStart;
         }
         System.out.println("30000009::: Count is "+ count);
         return start;
@@ -288,9 +287,9 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
         while(true) {
             if (fileWriter.getFilePointer() > fileReader.getFilePointer()
                     && ((fileWriter.getFilePointer() - fileReader.getFilePointer()  > bufferSize) || !_windowEndAddress.isEmpty())) {
-                if(!_windowEndAddress.isEmpty() && _windowEndAddress.peek() - startOffset > 0 && _windowEndAddress.peek() - startOffset + 1 <= bufferSize) {
+                if(!_windowEndAddress.isEmpty() && _windowEndAddress.peek() - startOffset >= 0 && _windowEndAddress.peek() - startOffset + 1 <= bufferSize) {
                     endOffset = _windowEndAddress.remove();
-                    System.out.println("335:::~~~~~~~~Removing End Offset");
+                    //System.out.println("335:::~~~~~~~~Removing End Offset");
                     //System.out.println("Start Offset::" + startOffset + "End Offset::" + endOffset + "File length::" + fileWriter.length() + "Buffer Size::"+bufferSize);
                     end = loadBuffer(startOffset, endOffset,0);
                     //System.out.println("332:: Start Offset is::" + startOffset+ "   End Offset::" + endOffset);
@@ -311,7 +310,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                 //System.out.println("346:::!!!!!!!!!!!!!!!!!!!!FileWriter.length()::"+fileWriter.length()+ "   Start Offset::"+startOffset);
                 if(!_windowEndAddress.isEmpty() && _windowEndAddress.peek() - startOffset > 0 && _windowEndAddress.peek() - startOffset + 1 < bufferSize) {
                     endOffset = _windowEndAddress.remove();
-                    System.out.println("356:::~~~~~~~~Removing End Offset");
+                    //System.out.println("356:::~~~~~~~~Removing End Offset");
                     //System.out.println("350::: End Offset::" + endOffset);
                     //System.out.println("Start Offset::" + startOffset + "End Offset::" + endOffset + "File length::" + fileWriter.length() + "Buffer Size::"+bufferSize);
                     end = loadBuffer(startOffset, endOffset,0);
@@ -334,12 +333,12 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                     loadBuffer(startOffset, endOffset,0);
                     int index1 = (int) (endOffset - startOffset) + 1;
                     //System.out.println("print index1::"+ index1);
-                    System.out.println("@@@@@@@@@@367 :: Start Offset is::" + startOffset + "   End Offset::" + endOffset);
+                    //System.out.println("@@@@@@@@@@367 :: Start Offset is::" + startOffset + "   End Offset::" + endOffset);
                     endOffset = _windowEndAddress.remove();
-                    System.out.println("381:::~~~~~~~~Removing End Offset");
+                    //System.out.println("381:::~~~~~~~~Removing End Offset");
                     startOffset =0;
                     end = loadBuffer(startOffset, endOffset,index1);
-                    System.out.println("@@@@@@@@@@@@@@ End::"+end + "Start Offset::" + startOffset+"  endOffset::"+ endOffset);
+                    //System.out.println("@@@@@@@@@@@@@@ End::"+end + "Start Offset::" + startOffset+"  endOffset::"+ endOffset);
                     emitTuples(0,index1+end);
                     sendEndOfWindowSignal(_collector);
                     System.out.println("378::: ~~~~~~~~~`Sent EOW End Offset::" + endOffset);

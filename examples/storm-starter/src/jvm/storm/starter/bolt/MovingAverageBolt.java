@@ -18,7 +18,7 @@ import java.util.Map;
 /**
  * Created by sachin on 6/11/15. //Test bolt to verify tumbling window
  */
-public class MovingAverageBolt extends BaseRichBolt implements IWindowBolt {
+public class MovingAverageBolt extends BaseRichBolt {
     final static Logger LOG = Logger.getLogger(MovingAverageBolt.class.getName());
     OutputCollector _collector;
     //static WindowObject wObject;

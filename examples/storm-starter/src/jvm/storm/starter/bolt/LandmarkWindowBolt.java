@@ -12,8 +12,7 @@ import storm.starter.HelperClasses.WindowObject;
 import java.util.Map;
 
 /**
- * Created by Harini Rajendran on 6/7/15.
- * Modified by Sachin Jain on 6/13/2015. Moving emittter logic to BaseWindowBolt
+ * Created by Harini Rajendran on 6/29/15.
  */
 
 public class LandmarkWindowBolt extends BaseWindowBolt{
@@ -24,7 +23,7 @@ public class LandmarkWindowBolt extends BaseWindowBolt{
     long tupleCount; //Variable to keep track of the tuple count for time based window
     boolean isExecutedOnce = false; //Boolean which controls thread spawning
     boolean isTimeBased = false;
-    int slideBy;
+    int slideBy;//Variable used to indicate when the window start has to be slided
     long wLength;
     /**
      * Constructor which takes the WindowObject as the parameter
@@ -64,7 +63,7 @@ public class LandmarkWindowBolt extends BaseWindowBolt{
             Thread thread = new Thread() {
                 public void run() {
                     while(true) {
-                        System.out.println("Initiated Emitter!!!");
+                        LOG.info("Initiated Emitter!!!");
                         initiateEmitter(_collector);
                     }
                 }
@@ -82,13 +81,13 @@ public class LandmarkWindowBolt extends BaseWindowBolt{
                 {
                     for(int i = 0; i < slideBy; i++)
                         LOG.info("Window Start::" + tupleCount);
-                    storeTuple(tuple, 0, slideBy);
-                    windowStart += slideBy*wLength;
+                    storeTuple(tuple, 0, slideBy);//Window start will be same slideBy times
+                    windowStart += slideBy*wLength;//WindowStart has to be updated only after slideBy tick tuples
                 }
                 if (tupleCount == windowEnd) { //If the tuple marks the window end
                     LOG.info("Window End::" + (tupleCount));
                     storeTuple(tuple, 1, 1);
-                    windowEnd += wLength;
+                    windowEnd += wLength;//Window end should be updated for every window length
                 }
             }
             else {
@@ -144,14 +143,14 @@ public class LandmarkWindowBolt extends BaseWindowBolt{
      * Declare configuration specific to this component.
      */
     public Map<String, Object> getComponentConfiguration() {
-        //if(isTimeBased) {
-        System.out.println("!!!Tick tuple configured");
-            //Map<String, Object> conf = new HashMap<String, Object>();
+        if(isTimeBased) {
+        LOG.info("Tick tuple configured");
+        //Map<String, Object> conf = new HashMap<String, Object>();
         Config conf = new Config();
         conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, 1);
         return conf;
-        //}
-        //return null;
+        }
+        return null;
     }
 
 

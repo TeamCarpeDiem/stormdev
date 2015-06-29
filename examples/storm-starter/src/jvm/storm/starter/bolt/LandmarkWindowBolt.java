@@ -8,6 +8,7 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import org.apache.log4j.Logger;
 import storm.starter.HelperClasses.WindowObject;
+import storm.starter.Interfaces.IWindowBolt;
 
 import java.util.Map;
 
@@ -15,7 +16,7 @@ import java.util.Map;
  * Created by Harini Rajendran on 6/29/15.
  */
 
-public class LandmarkWindowBolt extends BaseWindowBolt{
+public class LandmarkWindowBolt extends BaseWindowBolt implements IWindowBolt{
     final static Logger LOG = Logger.getLogger(LandmarkWindowBolt.class.getName());
     OutputCollector _collector;
     long windowStart; //Variable which keeps track of the window start
@@ -153,5 +154,7 @@ public class LandmarkWindowBolt extends BaseWindowBolt{
         return null;
     }
 
-
+    public boolean isMockTick(Tuple tuple){
+        return true;
+    }
 }

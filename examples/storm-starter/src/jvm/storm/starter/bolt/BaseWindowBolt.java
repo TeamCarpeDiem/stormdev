@@ -7,7 +7,6 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
-import storm.starter.HelperClasses.WindowObject;
 import storm.starter.Interfaces.IBaseWindowBolt;
 
 import java.io.FileNotFoundException;
@@ -29,7 +28,6 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
     OutputCollector _collector;
     private long windowLength;
     private long slideBy;
-    private String windowingMechanism; //A String to set the type of windowing mechanism
     private String FILEPATH = System.getProperty("user.home")+"//WindowsContent";
     private long MAXFILESIZE = ((5l * 1024 * 1024 * 1024) - 1);
     private final int WRITEBUFFERSIZE = 50 * 1024 * 1024;
@@ -53,25 +51,25 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
 
     /*   Constructors */
 
-    public BaseWindowBolt(WindowObject wObject)
+    public BaseWindowBolt(long wLength, long sBy, boolean isTBased)
     {
-        tcount = 0;scount = 0;
-        if(wObject.getWindowLength() <= 0) {
+        tcount = 0;
+        scount = 0;
+        if(wLength <= 0) {
             throw new IllegalArgumentException("Window length is either null or negative");
         }
         else {
-            windowLength = wObject.getWindowLength();
+            windowLength = wLength;
         }
-        if(wObject.getSlideBy() <= 0) {
+        if(sBy <= 0) {
             throw new IllegalArgumentException("Slideby should be a Positive value");
         }
         else {
-            slideBy = wObject.getSlideBy();
+            slideBy = sBy;
         }
-        isTimeBased = wObject.getIsTimeBased();
+        isTimeBased = isTBased;
         _windowStartAddress = new LinkedBlockingQueue<Long>();
         _windowEndAddress = new LinkedBlockingQueue<Long>();
-        windowingMechanism = wObject.getWindowingMechanism();
 
         writeBuffer = new byte[WRITEBUFFERSIZE]; //Write Buffer size 100 MB
         readBuffer = new byte[READBUFFERSIZE]; // Read Buffer size 100 MB

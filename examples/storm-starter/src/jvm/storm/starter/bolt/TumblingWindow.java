@@ -41,7 +41,7 @@ public class TumblingWindow extends BaseWindowBolt{
      * @param wObject Window Object
      */
     public TumblingWindow(WindowObject wObject) {
-        super(wObject);
+        super(wObject.getWindowLength(), wObject.getSlideBy(), wObject.getIsTimeBased());
         tumblingWindowObject = wObject;
         count = wObject.getWindowLength();
         temp = wObject.getWindowLength();

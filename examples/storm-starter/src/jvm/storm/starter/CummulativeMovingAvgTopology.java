@@ -11,7 +11,6 @@ import backtype.storm.utils.Utils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import storm.starter.HelperClasses.WindowObject;
-import storm.starter.bolt.LandmarkWindowBolt;
 import storm.starter.bolt.MovingAverageBolt;
 import storm.starter.spout.RandomIntegerSpout;
 
@@ -37,12 +36,11 @@ public class CummulativeMovingAvgTopology {
         conf.setDebug(false);
         LOG.info("Testing Time Based");
         
-        wObject = new WindowObject(2000,5,false);
-        //wObject = new WindowObject(4,4,true);
+        wObject = new WindowObject("landmark", 2000, 5, false);
+        //wObject = new WindowObject("landmark", 3, 5, true);
         builder = new WindowTopologyBuilder();
         builder.setSpout("RandomInt", new RandomIntegerSpout(), 10);
-        //builder.setBolt("Sliding", new SlidingWindowBolt(wObject),1).shuffleGrouping("RandomInt");
-        builder.setBolt("Sliding", new LandmarkWindowBolt(wObject),1).shuffleGrouping("RandomInt");
+        builder.setBolt("Sliding", wObject.CreateWindow() ,1).shuffleGrouping("RandomInt");
         builder.setBolt("Average", new MovingAverageBolt(), 1).shuffleGrouping("Sliding","dataStream")
                 .shuffleGrouping("Sliding","mockTickTuple");
 

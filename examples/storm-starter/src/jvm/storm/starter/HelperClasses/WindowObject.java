@@ -1,5 +1,9 @@
 package storm.starter.HelperClasses;
 
+import storm.starter.bolt.BaseWindowBolt;
+import storm.starter.bolt.SlidingWindowBolt;
+import storm.starter.bolt.LandmarkWindowBolt;
+
 import java.io.Serializable;
 
 /**
@@ -17,19 +21,23 @@ public class WindowObject implements Serializable{
     /******* Constructor ********/
     public WindowObject()
     {
-        windowLength = -1;
-        slideBy = -1;
+        windowLength = 1000;
+        slideBy = 1000;
+        isTimeBased = false;
+        windowingMechanism = "tumbling";
     }
 
-    public WindowObject(long wLength,boolean isTBased)
+    public WindowObject(String type, long wLength,boolean isTBased)
     {
+        windowingMechanism = type;
         windowLength= wLength;
         slideBy = wLength; //by default it is a tumbling window
         isTimeBased= isTBased;
     }
 
-    public WindowObject(long wLength, long slideB, boolean isTBased)
+    public WindowObject(String type, long wLength, long slideB, boolean isTBased)
     {
+        windowingMechanism = type;
         windowLength= wLength;
         slideBy = slideB;
         isTimeBased= isTBased;
@@ -118,4 +126,25 @@ public class WindowObject implements Serializable{
         windowingMechanism = windowName;
     }
     /******* End of Getter and Setter ********/
+
+    public BaseWindowBolt CreateWindow() throws Exception {
+
+        BaseWindowBolt window = null;
+
+        if(windowingMechanism.equals("tumbling")){
+            if (windowLength == slideBy)
+                window = new SlidingWindowBolt(windowLength, slideBy, isTimeBased);
+            else
+                throw new Exception("Window Length and Slide By Values are not same");
+        }
+
+        if(windowingMechanism.equals("sliding")) {
+            window = new SlidingWindowBolt(windowLength, slideBy, isTimeBased);
+        }
+        if(windowingMechanism.equals("landmark")) {
+            window = new LandmarkWindowBolt(windowLength, slideBy, isTimeBased);
+        }
+
+        return window;
+    }
 }

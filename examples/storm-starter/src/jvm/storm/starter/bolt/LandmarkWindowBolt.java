@@ -7,7 +7,6 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import org.apache.log4j.Logger;
-import storm.starter.HelperClasses.WindowObject;
 import storm.starter.Interfaces.IWindowBolt;
 
 import java.util.Map;
@@ -28,22 +27,24 @@ public class LandmarkWindowBolt extends BaseWindowBolt implements IWindowBolt{
     long wLength;
     /**
      * Constructor which takes the WindowObject as the parameter
-     * @param wObj Window Object specifying the window parameters and window type
+     * @param wlength window length
+     * @param sBy slideBy value
+     * @param isTBased Boolean to indicate whether the window is time based on count based
      */
-    public LandmarkWindowBolt(WindowObject wObj)
+    public LandmarkWindowBolt(long wlength, long sBy, boolean isTBased)
     {
-        super(wObj);
-
+        super(wlength, sBy, isTBased);
+        LOG.info("Created a LandMark Window Bolt");
         windowStart = 1;
-        windowEnd = wObj.getWindowLength();
+        windowEnd = wlength;
         tupleCount = 0;
-        slideBy = (int)wObj.getSlideBy();
-        wLength = wObj.getWindowLength();
+        slideBy = (int)sBy;
+        wLength = wlength;
 
-        if(wObj.getIsTimeBased())
+        if(isTBased)
         {
-            isTimeBased = wObj.getIsTimeBased();
-            for(int i = 0 ; i < wObj.getSlideBy(); i++) {
+            isTimeBased = isTBased;
+            for(int i = 0 ; i < sBy; i++) {
                 addStartAddress(0l);
                 LOG.info("Window Start::" + tupleCount);
             }

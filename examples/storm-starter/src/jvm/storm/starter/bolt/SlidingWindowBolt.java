@@ -66,10 +66,7 @@ public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
         {
             Thread thread = new Thread() {
                 public void run() {
-                   // while(true) {
-                    //    System.out.println("Initiated Emitter!!!");
-                        initiateEmitter(_collector);
-                   // }
+                    initiateEmitter(_collector);
                 }
             };
             thread.start();
@@ -120,15 +117,11 @@ public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
             if(tupleCount != windowStart && tupleCount != windowEnd) //The tuple is in the middle of a window
                 storeTuple(tuple, -1, 1);
             if (tupleCount == windowEnd) { //If the tuple marks the window end
-               //LOG.info("Window End::" + (tupleCount));
-                //System.out.println("Tuple Count before Adding END::"+edCount);
                 storeTuple(tuple, 1, 1);
                 windowEnd += slideBy;
                 edCount=0;
             }
             if (tupleCount == windowStart) {//If the tuple marks the window beginning
-               //LOG.info("Window Start::" + tupleCount);
-                //System.out.println("Tuple Count before Adding START::"+stCount);
                 storeTuple(tuple, 0, 1);
                 stCount =0;
                 windowStart += slideBy;
@@ -167,7 +160,6 @@ public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
      */
     public Map<String, Object> getComponentConfiguration() {
         if(isTimeBased) {
-            System.out.println("!!!Tick tuple configured");
             Map<String, Object> conf = new HashMap<String, Object>();
             conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, 1);
             return conf;

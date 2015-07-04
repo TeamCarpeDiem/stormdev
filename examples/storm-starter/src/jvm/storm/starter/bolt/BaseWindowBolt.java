@@ -21,12 +21,6 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 
 public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
-    /*
-
-		int MaxBufferSize = 98; // 100 -2 //ToDo assign in constructor from config file and subtract 2 from it
-
-
-	 */
     OutputCollector _collector;
     private long windowLength;
     private long slideBy;
@@ -93,14 +87,10 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
         _windowStartAddress = new LinkedBlockingQueue<Long>();
         _windowEndAddress = new LinkedBlockingQueue<Long>();
 
-        writeBuffer = new byte[WRITEBUFFERSIZE]; //Write Buffer size 100 MB
-        //readBuffer = new byte[READBUFFERSIZE]; // Read Buffer size 100 MB
+        writeBuffer = new byte[WRITEBUFFERSIZE];
 
         bufferIndex = 0;
         secondCount = 0;
-
-        System.out.println("!!!!!!!!!!!MAXFILESIZE is::" + MAXFILESIZE);
-
     }
 
 
@@ -161,17 +151,9 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
             }
 
             if (flag == 0) {
-                //System.out.println(" 146 not updated file pointer:" + fileWriter.getFilePointer());
                 writeInParts(writeBuffer,0,bufferIndex);
-                if(fileWriter.getFilePointer() > MAXFILESIZE) {
-                //    System.out.println(" 138 insert Start file pointer:" + fileWriter.getFilePointer());
-                }
-
-                //    Arrays.fill(writeBuffer, 0, bufferIndex, (byte) 0);
                 bufferIndex = 0;
                 for (int i = 0; i < count; i++) {
-                    //System.out.println("Start Address::"+fileWriter.getFilePointer());
-             //       System.out.println(" 145 insert Start file pointer:" + fileWriter.getFilePointer());
                     _windowStartAddress.add(fileWriter.getFilePointer());
                 }
             }
@@ -194,31 +176,17 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
             }
 
             if (flag == 1) {
-
-
-                //System.out.println(" 187 not updated file pointer:" + fileWriter.getFilePointer());
                 writeInParts(writeBuffer,0,bufferIndex);
-                if(fileWriter.getFilePointer() > MAXFILESIZE) {
-                  //  System.out.println(" 173 insert end file pointer:" + fileWriter.getFilePointer());
-                }
-
-                //Arrays.fill(writeBuffer, 0, bufferIndex, (byte) 0);
                 bufferIndex = 0;
 
                 for (int i = 0; i < count; i++) {
-              //      System.out.println(" 180 insert end file pointer:" + (fileWriter.getFilePointer()-1));
                     _windowEndAddress.add(fileWriter.getFilePointer()-1);
                 }
             }
 
             if(bufferIndex >= WRITEBUFFERSIZE*percentage) //If the buffer is 75% full
             {
-
-                //    System.out.println(" 207 not updated file pointer:" + fileWriter.getFilePointer() + "BufferSize:" + bufferIndex);
                 writeInParts(writeBuffer,0,bufferIndex);
-                if(fileWriter.getFilePointer() > MAXFILESIZE) {
-                    //System.out.println(" 191 updated file pointer:" + fileWriter.getFilePointer());
-                }
                 bufferIndex = 0;
             }
         }
@@ -244,7 +212,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
     public void initiateEmitter(OutputCollector baseCollector)
     {
         _collector = baseCollector;
-                   Emitter();
+        Emitter();
         while(true);
     }
 
@@ -306,8 +274,6 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
 
         public void run(){
             while(true){
-
-                //System.out.println("I am thread: "+ _threadSequence);
                 synchronized(ThreadSequenceQueue){
                     while(ThreadSequenceQueue.peek() != _threadSequence){
                         try {
@@ -346,7 +312,6 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                                     sendEOWSignal=false;
                                     break;
                                 }
-
                             }
                             else if((!_windowEndAddress.isEmpty() && _windowEndAddress.peek() < startOffset)
                                     || (startOffset > fileWriter.getFilePointer() && MAXFILESIZE-startOffset + fileWriter.getFilePointer() + 1 >= MaxBufferSize)){
@@ -391,7 +356,6 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                     }
                     ThreadSequenceQueue.add(ThreadSequenceQueue.remove());
                     ThreadSequenceQueue.notifyAll();
-                    //ProducerConsumerMap.put(_threadSequence, 1);
                 }
 
                 try {
@@ -400,9 +364,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                         int index = (int)(endOffset - start + 1);
                         if(sendEOWSignal)
                         {
-
                             loadBufferWithEOWSignal(start1, endOffset1, index);
-
                         }
                         else
                         {
@@ -413,7 +375,6 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                         if(sendEOWSignal)
                         {
                             loadBufferWithEOWSignal(start, endOffset, 0);
-
                         }
                         else
                         {
@@ -424,7 +385,6 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
-              //  System.out.println("I am done with this life. See you in next life, says thred: "+ _threadSequence);
                 ProducerConsumerMap.put(_threadSequence, 1);
             }
         }
@@ -437,15 +397,11 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                 fileReader.read(_bufferList.get(_threadSequence), index, length);
                 _bufferList.get(_threadSequence)[length] = -1;
                 _bufferList.get(_threadSequence)[length+1] = -1;
-                //System.out.println("Start address: "+  s + " End address: " + e);
-               // String tupleData = new String( _bufferList.get(_threadSequence));
-                //System.out.println("Tuple data from buffer: "+  tupleData);
-            }
+                }
             catch(Exception ex)
             {
                 System.out.println("Exception Caught with  length ::" + length);
                 ex.printStackTrace();
-                //exit(1);
             }
 
         }
@@ -458,17 +414,12 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                 fileReader.read(_bufferList.get(_threadSequence), index, length);
                 _bufferList.get(_threadSequence)[length] = 0;
                 _bufferList.get(_threadSequence)[length+1] = 0;
-              //  System.out.println("Start address: "+  s + " End address: " + e);
-
             }
             catch(Exception ex)
             {
                 System.out.println("Exception Caught with length ::" + length);
                 ex.printStackTrace();
-                //exit(1);
             }
-            //return length;
-
         }
     }
 
@@ -484,31 +435,19 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
         }
 
         public void run(){
-
-            //int end = MaxBufferSize;
             int length =0;
             while(true)
             {
                 while(ProducerConsumerMap.get(currentBuffer%MaxThread) == -1);
 
                 length = getLength();
-              //  System.out.println("The length of tuple: "+ length);
 
                 if(start + length <= MaxBufferSize)
                 {
-                    //System.out.println("length of the start is: "+ start);
-                    //System.out.println("length of the tuple is: "+ length);
                     byte[] tempArray = Arrays.copyOfRange(_bufferList.get(currentBuffer), start, start+length);
                     String tupleData = new String(tempArray);
-                    //System.out.println("String before emit::" + tupleData);
                     _collector.emit("dataStream", new Values(tupleData)); //TODO uncomment when putting real system
-                   // System.out.println("yo man!!!!!!!!! Emitted a tuple..... woooohoooooooo!!!!!!!!!");
-                    //count++;
                     start = start + length;
-                    if(start == MaxBufferSize)
-                    {
-                        System.out.println(start);
-                    }
                 }
                 else
                 {
@@ -522,20 +461,14 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                     start =0;
                     length = length - partLength;
                     while(ProducerConsumerMap.get(currentBuffer%MaxThread) == -1);
-//					tempArray = Arrays.copyOfRange(_bufferList.get(currentBuffer), start, length);
 
                     System.arraycopy(_bufferList.get(currentBuffer), start, tempArray, partLength, length);
 
                     String tupleData = new String(tempArray);
-                    //System.out.println("String before emit::" + tupleData);
                     _collector.emit("dataStream", new Values(tupleData)); //TODO uncomment when putting real system
                     start = start + length;
                 }
-
-
-
             }
-
         }
 
         public int getLength()
@@ -548,7 +481,6 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                 start = start + 2;
                 int tempLength = getIntFromTwoBytes(ten,unit);
 
-              //  System.out.println("calculated length: "+ tempLength);
                 if(tempLength == -1)
                 {
                     sendEndOfWindowSignal();
@@ -558,7 +490,6 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                     return tempLength;
                 }
                 ProducerConsumerMap.put(currentBuffer, -1);
-              //  System.out.println("Consumed Buffer: "+currentBuffer);
                 currentBuffer++;
                 currentBuffer = currentBuffer%MaxThread;
                 while(ProducerConsumerMap.get(currentBuffer%MaxThread) == -1);
@@ -573,7 +504,6 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                 {
                     sendEndOfWindowSignal();
                     ProducerConsumerMap.put(currentBuffer, -1);
-                //    System.out.println("Consumed Buffer: "+currentBuffer);
                     currentBuffer++;
                     currentBuffer = currentBuffer%MaxThread;
                     while(ProducerConsumerMap.get(currentBuffer%MaxThread) == -1);
@@ -582,7 +512,6 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                 }
 
                 ProducerConsumerMap.put(currentBuffer, -1);
-             //   System.out.println("Consumed Buffer: "+currentBuffer);
                 currentBuffer++;
                 currentBuffer = currentBuffer%MaxThread;
                 start =0;
@@ -595,24 +524,17 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                 ten = _bufferList.get(currentBuffer)[start];
                 unit = _bufferList.get(currentBuffer)[start+1];
                 int tempLength = getIntFromTwoBytes(ten,unit);
-               // System.out.println("calculated length: "+ tempLength);
                 if(tempLength == -1)
                 {
                     sendEndOfWindowSignal();
                 }
                 ProducerConsumerMap.put(currentBuffer, -1);
-             //   System.out.println("Consumed Buffer: "+currentBuffer);
                 currentBuffer++;
                 currentBuffer = currentBuffer%MaxThread;
                 while(ProducerConsumerMap.get(currentBuffer%MaxThread) == -1);
                 start = 0;
                 return getLength();
             }
-
         }
-
-
     }
-
-
 }

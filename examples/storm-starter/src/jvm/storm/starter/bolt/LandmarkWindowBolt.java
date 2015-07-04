@@ -146,8 +146,6 @@ public class LandmarkWindowBolt extends BaseWindowBolt implements IWindowBolt{
      */
     public Map<String, Object> getComponentConfiguration() {
         if(isTimeBased) {
-        LOG.info("Tick tuple configured");
-        //Map<String, Object> conf = new HashMap<String, Object>();
         Config conf = new Config();
         conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, 1);
         return conf;

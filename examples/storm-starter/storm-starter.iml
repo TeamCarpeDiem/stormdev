@@ -17,6 +17,7 @@
     <orderEntry type="library" name="Maven: org.apache.zookeeper:zookeeper:3.4.6" level="project" />
     <orderEntry type="library" name="Maven: io.netty:netty:3.9.0.Final" level="project" />
     <orderEntry type="library" name="Maven: clj-stacktrace:clj-stacktrace:0.2.4" level="project" />
+    <orderEntry type="library" name="Maven: log4j:log4j:1.2.17" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: junit:junit:3.8.1" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.testng:testng:6.8.5" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.beanshell:bsh:2.0b4" level="project" />
@@ -71,26 +72,26 @@
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.5" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:log4j-over-slf4j:1.6.6" level="project" />
     <orderEntry type="library" name="Maven: jline:jline:2.11" level="project" />
-    <orderEntry type="library" name="Maven: commons-collections:commons-collections:3.2.1" level="project" />
-    <orderEntry type="library" name="Maven: com.google.guava:guava:16.0.1" level="project" />
-    <orderEntry type="library" name="Maven: reply:reply:0.3.0" level="project" />
     <orderEntry type="library" name="Maven: org.thnetos:cd-client:0.3.6" level="project" />
     <orderEntry type="library" name="Maven: clj-http-lite:clj-http-lite:0.2.0" level="project" />
     <orderEntry type="library" name="Maven: slingshot:slingshot:0.10.3" level="project" />
     <orderEntry type="library" name="Maven: cheshire:cheshire:4.0.3" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-core:2.0.6" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.dataformat:jackson-dataformat-smile:2.0.6" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.clojure:tools.nrepl:0.2.3" level="project" />
     <orderEntry type="library" name="Maven: com.cemerick:drawbridge:0.0.6" level="project" />
     <orderEntry type="library" name="Maven: clj-http:clj-http:0.3.6" level="project" />
     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpclient:4.3.3" level="project" />
     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpcore:4.3.2" level="project" />
     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpmime:4.1.2" level="project" />
     <orderEntry type="library" name="Maven: trptcolin:versioneer:0.1.0" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: clojure-complete:clojure-complete:0.2.3" level="project" />
     <orderEntry type="library" name="Maven: org.clojars.trptcolin:sjacket:0.1.0.3" level="project" />
     <orderEntry type="library" name="Maven: net.cgrand:regex:1.1.0" level="project" />
     <orderEntry type="library" name="Maven: net.cgrand:parsley:0.9.1" level="project" />
+    <orderEntry type="library" name="Maven: commons-collections:commons-collections:3.2.1" level="project" />
+    <orderEntry type="library" name="Maven: com.google.guava:guava:16.0.1" level="project" />
+    <orderEntry type="library" name="Maven: reply:reply:0.3.0" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.clojure:tools.nrepl:0.2.3" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: clojure-complete:clojure-complete:0.2.3" level="project" />
   </component>
   <component name="org.twodividedbyzero.idea.findbugs">
     <option name="_basePreferences">
@@ -296,9 +297,5 @@
         <entry key="STYLE" value="true" />
       </map>
     </option>
-  </component>
-  <component name="sonarModuleSettings">
-    <option name="localAnalysisScripName" value="&lt;PROJECT&gt;" />
-    <option name="serverName" value="&lt;PROJECT&gt;" />
   </component>
 </module>

@@ -47,8 +47,16 @@ public class MovingAverageBolt extends BaseRichBolt implements IWindowBolt{
             cma = 0;
         }
         else {
+            //LOG.info("TUPLE BEGINS HERE!!!    ");
+        //    LOG.info(tuple.getString(0));
+            //LOG.info("     ");
             cma = cma + 1;//tuple.getInteger(0);
             count++;
+         //   if(count == 70000)
+           // {
+              // System.out.println("Count is "+ count);
+               // count = 0;
+            //}
         }
     }
 

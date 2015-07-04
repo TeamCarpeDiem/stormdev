@@ -28,13 +28,11 @@ public class CummulativeMovingAvgTopology {
         String log4jConfigFile = System.getProperty("user.dir")
                 + File.separator + "log4j.properties";
 
-        LOG.info("!!!!!!!!!!!!!File Path is::" + log4jConfigFile);
         PropertyConfigurator.configure(log4jConfigFile);
         WindowTopologyBuilder builder;
 
         Config conf = new Config();
         conf.setDebug(false);
-        LOG.info("Testing Time Based");
         
         wObject = new WindowObject("sliding", 10000, 500, false);
         //wObject = new WindowObject("landmark", 3, 5, true);
@@ -53,9 +51,7 @@ public class CummulativeMovingAvgTopology {
             LocalCluster cluster = new LocalCluster();
             cluster.submitTopology("test", conf, builder.createTopology());
             Utils.sleep(1200000);
-            //Utils.sleep(40000);
             cluster.killTopology("test");
-            System.out.println("Topology Killed");
             cluster.shutdown();
             exit(0);
         }

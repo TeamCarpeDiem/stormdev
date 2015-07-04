@@ -22,11 +22,6 @@ public class RandomIntegerSpout extends BaseRichSpout {
     SpoutOutputCollector _collector;
     Random _rand;
 
-    public RandomIntegerSpout()
-    {
-        //Utils.sleep(15000);
-    }
-
     @Override
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
         _collector = collector;

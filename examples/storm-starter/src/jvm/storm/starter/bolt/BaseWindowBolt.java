@@ -7,11 +7,10 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
+import backtype.storm.utils.Utils;
 import storm.starter.Interfaces.IBaseWindowBolt;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -32,18 +31,17 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
     private long windowLength;
     private long slideBy;
     private String FILEPATH = System.getProperty("user.home")+"//WindowsContent";
-    private long MAXFILESIZE = ((2l * 1024 * 1024 * 1024) - 1);
-    private final int WRITEBUFFERSIZE = 50 * 1024 * 1024;
-    private final int MaxBufferSize = 50 * 1024 * 1024;
-    private final double percentage = 0.75;
+    private long MAXFILESIZE;
+    private int WRITEBUFFERSIZE;
+    private int MaxBufferSize;
+    private double percentage;
+    int MaxThread;
     Thread[] DiskReaderThread;
     Thread MemoryReader;
     Long startOffset = -1L;
     HashMap<Integer, Integer> ProducerConsumerMap;
     List<byte[]> _bufferList;
     BlockingQueue<Integer> ThreadSequenceQueue;
-    int MaxThread = 5; //ToDo assign in constructor from config file
-
 
 
     protected BlockingQueue<Long> _windowStartAddress;
@@ -64,6 +62,19 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
 
     public BaseWindowBolt(long wLength, long sBy, boolean isTBased)
     {
+        Properties prop = new Properties();
+        InputStream input = null;
+        try {
+            input = new FileInputStream("config.properties");
+            prop.load(input);
+            MAXFILESIZE = Long.valueOf(prop.getProperty("maximumFileSize"));
+            WRITEBUFFERSIZE = Integer.valueOf(prop.getProperty("writeBufferSize"));
+            MaxBufferSize = Integer.valueOf(prop.getProperty("readBufferSize"));
+            percentage = Double.valueOf(prop.getProperty("bufferThreshold"));
+            MaxThread = Integer.valueOf(prop.getProperty("numberOfThreads"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         tcount = 0;
         scount = 0;
         if(wLength <= 0) {
@@ -146,10 +157,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
             if(!_windowStartAddress.isEmpty() && fileWriter.getFilePointer()  < _windowStartAddress.peek() && (fileWriter.getFilePointer()  - _windowStartAddress.peek()) < MaxBufferSize)
             {
                 System.out.println("Writer catching up  on Reader");
-                if(flag == -1)
-                {
-                    return;
-                }
+                Utils.sleep(5000);
             }
 
             if (flag == 0) {

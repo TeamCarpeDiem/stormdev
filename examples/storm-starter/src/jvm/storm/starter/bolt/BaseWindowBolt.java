@@ -93,9 +93,6 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
         secondCount = 0;
     }
 
-
-
-
     /*    Abstract Functions   */
     public void prepare(Map conf, TopologyContext context, OutputCollector collector)
     {

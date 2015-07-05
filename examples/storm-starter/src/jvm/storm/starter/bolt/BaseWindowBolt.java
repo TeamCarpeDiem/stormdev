@@ -176,9 +176,17 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
             if (flag == 1) {
                 writeInParts(writeBuffer,0,bufferIndex);
                 bufferIndex = 0;
+                if((long)fileWriter.getFilePointer() == 0L)
+                {
+                    for (int i = 0; i < count; i++) {
+                        _windowEndAddress.add(MAXFILESIZE - 1);
+                    }
+                }
+                else {
 
-                for (int i = 0; i < count; i++) {
-                    _windowEndAddress.add(fileWriter.getFilePointer()-1);
+                    for (int i = 0; i < count; i++) {
+                        _windowEndAddress.add(fileWriter.getFilePointer() - 1);
+                    }
                 }
             }
 

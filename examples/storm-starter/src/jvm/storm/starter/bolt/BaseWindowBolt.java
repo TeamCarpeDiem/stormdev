@@ -207,10 +207,8 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
         long remainingSpace = (MAXFILESIZE - fileWriter.getFilePointer());
         if(length <= remainingSpace) {
             fileWriter.write(writeBuffer, startIndex, length);
-            if(fileWriter.getFilePointer().equals(MAXFILESIZE))
-            {
+            if((long)fileWriter.getFilePointer() == MAXFILESIZE)
                 fileWriter.seek(0);
-            }
         }
             else {
             fileWriter.write(writeBuffer, startIndex, (int)remainingSpace);

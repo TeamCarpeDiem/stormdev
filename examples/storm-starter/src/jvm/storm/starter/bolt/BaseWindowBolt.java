@@ -197,9 +197,14 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
     private void writeInParts(byte[] buffer, int startIndex, int length) throws IOException
     {
         long remainingSpace = (MAXFILESIZE - fileWriter.getFilePointer());
-        if(length <= remainingSpace)
+        if(length <= remainingSpace) {
             fileWriter.write(writeBuffer, startIndex, length);
-        else {
+            if(fileWriter.getFilePointer().equals(MAXFILESIZE))
+            {
+                fileWriter.seek(0);
+            }
+        }
+            else {
             fileWriter.write(writeBuffer, startIndex, (int)remainingSpace);
             fileWriter.seek(0);
             fileWriter.write(writeBuffer, (int)remainingSpace, length - (int)remainingSpace);
@@ -252,7 +257,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
 
     protected void sendEndOfWindowSignal() //OutputCollector collector
     {
-         _collector.emit("mockTickTuple",new Values("__MOCKTICKTUPLE__"));
+        _collector.emit("mockTickTuple",new Values("__MOCKTICKTUPLE__"));
     }
 
     private class DiskToMemory extends Thread
@@ -400,7 +405,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                 fileReader.read(_bufferList.get(_threadSequence), index, length);
                 _bufferList.get(_threadSequence)[length] = -1;
                 _bufferList.get(_threadSequence)[length+1] = -1;
-                }
+            }
             catch(Exception ex)
             {
                 System.out.println("Exception Caught with  length ::" + length);

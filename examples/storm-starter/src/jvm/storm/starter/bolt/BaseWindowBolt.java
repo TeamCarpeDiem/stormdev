@@ -7,7 +7,6 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
-import backtype.storm.utils.Utils;
 import storm.starter.Interfaces.IBaseWindowBolt;
 
 import java.io.*;
@@ -141,10 +140,11 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
     {
         try {
 
-            if(!_windowStartAddress.isEmpty() && fileWriter.getFilePointer()  < _windowStartAddress.peek() && (fileWriter.getFilePointer()  - _windowStartAddress.peek()) < MaxBufferSize)
+            if(!_windowStartAddress.isEmpty() && (long)fileWriter.getFilePointer()  < (long)_windowStartAddress.peek() && (((long)_windowStartAddress.peek() - (long)fileWriter.getFilePointer() ) < (long)MaxBufferSize))
             {
-                System.out.println("Writer catching up  on Reader");
-                Utils.sleep(5000);
+                System.out.println("Writer catching up  on Reader..  Start Address::"+ _windowStartAddress.peek() + "File Writer:"+fileWriter.getFilePointer());
+                return;
+                //Utils.sleep(5000);
             }
 
             if (flag == 0) {
@@ -152,6 +152,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                 bufferIndex = 0;
                 for (int i = 0; i < count; i++) {
                     _windowStartAddress.add(fileWriter.getFilePointer());
+                    System.out.println("Start address added in the queue: "+ fileWriter.getFilePointer());
                 }
             }
 
@@ -289,6 +290,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                     if(startOffset == -1L)
                     {
                         startOffset = _windowStartAddress.remove();
+                        System.out.println("The startoffset removed is: " + startOffset);
                     }
                     try{
                         while(true){
@@ -297,9 +299,10 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                                 if(!_windowEndAddress.isEmpty() && _windowEndAddress.peek() - startOffset + 1 <= MaxBufferSize){
                                     start = startOffset;
                                     endOffset = _windowEndAddress.remove();
-
+                                    System.out.println("End address removed: "+ endOffset);
                                     startOffset = -1L;
                                     sendEOWSignal = true;
+                                    isWrapLoadNeeded = false;
                                     break;
                                 }
                                 else{
@@ -307,16 +310,18 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                                     endOffset = start + MaxBufferSize -1L;
                                     startOffset = endOffset + 1L;
                                     sendEOWSignal=false;
+                                    isWrapLoadNeeded = false;
                                     break;
                                 }
                             }
                             else if((!_windowEndAddress.isEmpty() && _windowEndAddress.peek() < startOffset)
                                     || (startOffset > fileWriter.getFilePointer() && MAXFILESIZE-startOffset + fileWriter.getFilePointer() + 1 >= MaxBufferSize)){
-                                if(MAXFILESIZE - startOffset >= MaxBufferSize){
+                                if(MAXFILESIZE - startOffset > MaxBufferSize){
                                     start = startOffset;
                                     endOffset =start + MaxBufferSize-1L;
                                     startOffset = endOffset + 1L;
                                     sendEOWSignal=false;
+                                    isWrapLoadNeeded = false;
                                     break;
                                 }
                                 else{
@@ -327,6 +332,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                                         isWrapLoadNeeded = true;
                                         start1 = 0L;
                                         endOffset1 = _windowEndAddress.remove();
+                                        System.out.println("End address removed: "+ endOffset1);
                                         startOffset = -1L;
                                         sendEOWSignal = true;
                                         break;
@@ -358,7 +364,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                 try {
                     if(isWrapLoadNeeded){
                         loadBuffer(start, endOffset, 0);
-                        int index = (int)(endOffset - start + 1);
+                        int index = (int)(endOffset - start) + 1;
                         if(sendEOWSignal)
                         {
                             loadBufferWithEOWSignal(start1, endOffset1, index);
@@ -443,6 +449,10 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                 {
                     byte[] tempArray = Arrays.copyOfRange(_bufferList.get(currentBuffer), start, start+length);
                     String tupleData = new String(tempArray);
+                    System.out.println("The out going tuple is: " + tupleData);
+                    if(!tupleData.substring(0,6).equals("Harini"))
+                        System.out.println("The out going tuple is: "+ tupleData);
+
                     _collector.emit("dataStream", new Values(tupleData)); //TODO uncomment when putting real system
                     start = start + length;
                 }
@@ -462,6 +472,11 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                     System.arraycopy(_bufferList.get(currentBuffer), start, tempArray, partLength, length);
 
                     String tupleData = new String(tempArray);
+                    System.out.println("The out going tuple is: " + tupleData);
+                    if(!tupleData.substring(0,6).equals("Harini")) {
+                        System.out.println("The out going tuple is: " + tupleData);
+
+                    }
                     _collector.emit("dataStream", new Values(tupleData)); //TODO uncomment when putting real system
                     start = start + length;
                 }
@@ -491,7 +506,16 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                 currentBuffer = currentBuffer%MaxThread;
                 while(ProducerConsumerMap.get(currentBuffer%MaxThread) == -1);
                 start =0;
-                return getLength();
+                tempLength = getLength();
+                if(tempLength < 5000 && tempLength > 4095)
+                {
+                    return tempLength;
+                }
+                else
+                {
+                    tempLength = tempLength+1;
+                }
+                return tempLength;
             }
             else if (start < MaxBufferSize){
                 ten = _bufferList.get(currentBuffer)[start];

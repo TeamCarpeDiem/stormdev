@@ -34,7 +34,7 @@ public class CummulativeMovingAvgTopology {
         Config conf = new Config();
         conf.setDebug(false);
         
-        wObject = new WindowObject("sliding", 10000, 500, false);
+        wObject = new WindowObject("sliding", 13000, 2000, false);
         //wObject = new WindowObject("landmark", 3, 5, true);
         builder = new WindowTopologyBuilder();
         builder.setSpout("RandomInt", new RandomIntegerSpout(), 10);
@@ -50,7 +50,7 @@ public class CummulativeMovingAvgTopology {
 
             LocalCluster cluster = new LocalCluster();
             cluster.submitTopology("test", conf, builder.createTopology());
-            Utils.sleep(1200000);
+            Utils.sleep(6000000);
             cluster.killTopology("test");
             cluster.shutdown();
             exit(0);

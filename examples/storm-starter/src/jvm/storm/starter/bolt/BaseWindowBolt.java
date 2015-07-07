@@ -17,7 +17,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * Created by Dave root on 7/7/15.
+ * Created by Sachin (Emitting logic)and Harini (Storing logic) on 7/7/15.
  */
 public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
 

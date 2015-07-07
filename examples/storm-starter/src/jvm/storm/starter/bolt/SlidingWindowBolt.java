@@ -7,6 +7,7 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import org.apache.log4j.Logger;
+import storm.starter.HelperClasses.WindowObject;
 import storm.starter.Interfaces.IWindowBolt;
 
 import java.util.HashMap;
@@ -53,6 +54,24 @@ public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
             windowStart += sBy;
         }
     }
+
+    public SlidingWindowBolt(WindowObject wObject)
+    {
+        super(wObject);
+        LOG.info("Created Sliding Window");
+        windowStart = 1;
+        windowEnd = wObject.getWindowLength();
+        tupleCount = 0;
+        slideBy = wObject.getSlideBy();
+        if(wObject.getIsTimeBased())
+        {
+            isTimeBased = wObject.getIsTimeBased();
+            LOG.info("Window Start::" + tupleCount);
+            addStartAddress(0l);
+            windowStart += wObject.getSlideBy();
+        }
+    }
+
 
     @Override
     /**
@@ -114,6 +133,7 @@ public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
             tupleCount++;
             stCount++;
             edCount++;
+
             if(tupleCount != windowStart && tupleCount != windowEnd) //The tuple is in the middle of a window
                 storeTuple(tuple, -1, 1);
             if (tupleCount == windowEnd) { //If the tuple marks the window end
@@ -167,3 +187,4 @@ public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
         return null;
     }
 }
+

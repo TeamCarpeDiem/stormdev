@@ -34,7 +34,7 @@ public class CummulativeMovingAvgTopology {
         Config conf = new Config();
         conf.setDebug(false);
         
-        wObject = new WindowObject("sliding", 10000, 2500, false);
+        wObject = new WindowObject("sliding", 13000, 2500, false);
         //wObject = new WindowObject("landmark", 3, 5, true);
         builder = new WindowTopologyBuilder();
         builder.setSpout("RandomInt", new RandomIntegerSpout(), 10);

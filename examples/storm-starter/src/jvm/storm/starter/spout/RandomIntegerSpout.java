@@ -32,7 +32,7 @@ public class RandomIntegerSpout extends BaseRichSpout {
     public void nextTuple() {
         /*   Less than 100 tuples per second */
         int randomNum = _rand.nextInt(1);
-        Utils.sleep(3);
+        Utils.sleep(1);
 
         /*count++;
         if(count < 500)
@@ -74,7 +74,7 @@ public class RandomIntegerSpout extends BaseRichSpout {
         str[8] = "Harinijjjjjjjjjjjjjjjjjjjjjjjjjjjjjjshhhhhhhhhhhhhhhhaiiiiiiiiiiiiiiiiiiiiiiiiiheeeeeeeeeeeeeaooooooooooooooooooooooohdddddddddddddddddddddddddwuuuuuuuuuuuuuuuuuuiheeeeeefiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhddddddddddddddddddddddddddddddddddiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiieeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeewppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeejjjjjjjjjjjjjjjjjjjjjjjjjjjjjjshhhhhhhhhhhhhhhhaiiiiiiiiiiiiiiiiiiiiiiiiiheeeeeeeeeeeeeaooooooooooooooooooooooohdddddddddddddddddddddddddwuuuuuuuuuuuuuuuuuuiheeeeeefiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhddddddddddddddddddddddddddddddddddiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiieeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
         str[9] = "Harinihhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh";
         //String str1 = "HariniSachin";
-        int strIndex = _rand.nextInt(10);
+        int strIndex = _rand.nextInt(9);
         _collector.emit(new Values(str[0]));
     }
 

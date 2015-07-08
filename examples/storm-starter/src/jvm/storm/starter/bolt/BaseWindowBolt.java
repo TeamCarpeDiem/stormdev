@@ -8,6 +8,7 @@ import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import backtype.storm.utils.Utils;
+import storm.starter.HelperClasses.WindowObject;
 import storm.starter.Interfaces.IBaseWindowBolt;
 
 import java.io.*;
@@ -15,92 +16,122 @@ import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-
 /**
- * Created by Harini Rajendran on 6/3/15.
+ * Created by Dave root on 7/7/15.
  */
+public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
 
-public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
-    OutputCollector _collector;
-    private long windowLength;
-    private long slideBy;
-    private String FILEPATH = System.getProperty("user.home")+"//WindowsContent";
-    private long MAXFILESIZE;
-    private int WRITEBUFFERSIZE;
-    private int MaxBufferSize;
-    private double percentage;
-    int MaxThread;
-    Thread[] DiskReaderThread;
-    Thread MemoryReader;
-    Long startOffset = -1L;
-    HashMap<Integer, Integer> ProducerConsumerMap;
-    List<byte[]> _bufferList;
-    BlockingQueue<Integer> ThreadSequenceQueue;
-    int tlength; //Testing
+    /******************************* Configurable Parameters *******************************/
+    long MAXFILESIZE;
+    int WRITEBUFFERSIZE;
+    int READBUFFERSIZE;
+    double WRITEBUFFERTHRESHOLD;
+    int MAXTHREAD;
+    String FILEPATH;
 
+    /******************************* from window object  *******************************/
+    boolean isTimeBased;
 
+    /******************************* Updated while storing tuple  *******************************/
     protected BlockingQueue<Long> _windowStartAddress;
     protected BlockingQueue<Long> _windowEndAddress;
+    byte[] _writeBuffer; //Buffer which is used to perform bulk write to the disk
+    int _bufferIndex;
+    RandomAccessFile _fileWriter; //File to which contents will be written
+    int secondCount; //TODO Remove before releasing final code
 
-    private boolean isTimeBased; //True if time based, false if count based
+    /******************************* Updated while reading data from disk to memory  *******************************/
+    OutputCollector _collector;
+    List<byte[]> _bufferList;
+    Thread[] _diskReaderThread;
+    BlockingQueue<Integer> _threadSequenceQueue;
+    HashMap<Integer, Integer> _producerConsumerMap;
+    long startOffset;
+    RandomAccessFile _fileReader;
 
-    byte[] writeBuffer; //Buffer which is used to perform bulk write to the disk
-    int bufferIndex; //Index of the write buffer
-    RandomAccessFile fileWriter; //File to which contents will be written
-    RandomAccessFile fileReader;
-    int tcount, scount;
-    byte[] readBuffer;
+    /******************************* Updated while emitting data from memory  *******************************/
+    Thread _memoryReader;
 
-    int secondCount; //For testing
+    /******************************* Testing *****************************///TODO to be removed
+    int tLength;
 
-    /*   Constructors */
-
-    public BaseWindowBolt(long wLength, long sBy, boolean isTBased)
+    public BaseWindowBolt(WindowObject wObj)
     {
-        tlength = 3997;
+        tLength = 3997; //TODO to be removed
         Properties prop = new Properties();
         InputStream input = null;
         try {
+            FILEPATH = System.getProperty("user.home")+"//WindowsContent";
             input = new FileInputStream("config.properties");
             prop.load(input);
             MAXFILESIZE = Long.valueOf(prop.getProperty("maximumFileSize"));
             WRITEBUFFERSIZE = Integer.valueOf(prop.getProperty("writeBufferSize"));
-            MaxBufferSize = Integer.valueOf(prop.getProperty("readBufferSize"));
-            percentage = Double.valueOf(prop.getProperty("bufferThreshold"));
-            MaxThread = Integer.valueOf(prop.getProperty("numberOfThreads"));
+            READBUFFERSIZE = Integer.valueOf(prop.getProperty("readBufferSize"));
+            WRITEBUFFERTHRESHOLD = Double.valueOf(prop.getProperty("bufferThreshold"));
+            MAXTHREAD = Integer.valueOf(prop.getProperty("numberOfThreads"));
+            startOffset = -1L; // used by disk reader thread to get the start offset oof the disk
         } catch (IOException e) {
             e.printStackTrace();
         }
-        tcount = 0;
-        scount = 0;
-        if(wLength <= 0) {
+        if(wObj.getWindowLength() <= 0) {
             throw new IllegalArgumentException("Window length is either null or negative");
         }
-        else {
-            windowLength = wLength;
+        if(wObj.getSlideBy() <= 0) {
+            throw new IllegalArgumentException("Slideby should be a Positive value");
+        }
+
+        isTimeBased = wObj.getIsTimeBased();
+        _windowStartAddress = new LinkedBlockingQueue<Long>();
+        _windowEndAddress = new LinkedBlockingQueue<Long>();
+
+        _writeBuffer = new byte[WRITEBUFFERSIZE];
+
+        _bufferIndex = 0;
+        secondCount = 0;
+
+    }
+
+    //TODO Remove this constructor if one with windowobject works.
+    public BaseWindowBolt(long wLength, long sBy, boolean isTBased)
+    {
+        Properties prop = new Properties();
+        InputStream input = null;
+        try {
+            FILEPATH = System.getProperty("user.home")+"//WindowsContent";
+            input = new FileInputStream("config.properties");
+            prop.load(input);
+            MAXFILESIZE = Long.valueOf(prop.getProperty("maximumFileSize"));
+            WRITEBUFFERSIZE = Integer.valueOf(prop.getProperty("writeBufferSize"));
+            READBUFFERSIZE = Integer.valueOf(prop.getProperty("readBufferSize"));
+            WRITEBUFFERTHRESHOLD = Double.valueOf(prop.getProperty("bufferThreshold"));
+            MAXTHREAD = Integer.valueOf(prop.getProperty("numberOfThreads"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if(wLength <= 0) {
+            throw new IllegalArgumentException("Window length is either null or negative");
         }
         if(sBy <= 0) {
             throw new IllegalArgumentException("Slideby should be a Positive value");
         }
-        else {
-            slideBy = sBy;
-        }
+
         isTimeBased = isTBased;
         _windowStartAddress = new LinkedBlockingQueue<Long>();
         _windowEndAddress = new LinkedBlockingQueue<Long>();
 
-        writeBuffer = new byte[WRITEBUFFERSIZE];
+        _writeBuffer = new byte[WRITEBUFFERSIZE];
 
-        bufferIndex = 0;
+        _bufferIndex = 0;
         secondCount = 0;
     }
+
 
     /*    Abstract Functions   */
     public void prepare(Map conf, TopologyContext context, OutputCollector collector)
     {
         try {
-            fileWriter = new RandomAccessFile(FILEPATH,"rw");
-            fileReader = new RandomAccessFile(FILEPATH,"r");
+            _fileWriter = new RandomAccessFile(FILEPATH,"rws");
+            _fileReader = new RandomAccessFile(FILEPATH,"r");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -114,71 +145,103 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
     {
     }
 
-    @Override
+    //@Override
     public boolean isTickTuple(Tuple tuple) {
         return tuple.getSourceComponent().equals(Constants.SYSTEM_COMPONENT_ID)
                 && tuple.getSourceStreamId().equals(Constants.SYSTEM_TICK_STREAM_ID);
     }
 
-
-    protected void sendEndOfWindowSignal(OutputCollector collector)
+    protected void sendEndOfWindowSignal() //OutputCollector collector
     {
-        collector.emit("mockTickTuple",new Values("__MOCKTICKTUPLE__"));
+        _collector.emit("mockTickTuple",new Values("__MOCKTICKTUPLE__"));
     }
 
+    //@Override
+    public void initiateEmitter(OutputCollector baseCollector)
+    {
+        _collector = baseCollector;
+        Emitter();
+        //while(true);
+    }
+
+
+    @Override
+    public void cleanup() {
+        _writeBuffer = null;
+        File fp = new File(FILEPATH, "a");
+        fp.delete();
+    }
+
+    /**
+
+     * @param address
+     */
     protected void addStartAddress(Long address) {
         if(address >= 0) {
             _windowStartAddress.add(address);
         }
     }
 
+    /**
+     *
+     * @param address
+     */
     protected void addEndAddress(Long address) {
         if(address >= 0) {
             _windowEndAddress.add(address);
         }
     }
 
-    @Override
+    /**
+     *
+     * @param tuple
+     * @param flag
+     * @param count
+     */
+    //@Override
     public void storeTuple(Tuple tuple, int flag, int count)
     {
         try {
 
-            if(!_windowStartAddress.isEmpty() && (long)fileWriter.getFilePointer()  < (long)_windowStartAddress.peek() && (((long)_windowStartAddress.peek() - (long)fileWriter.getFilePointer() ) < (long)MaxBufferSize))
+            //TODO Catching Up part
+            if(!_windowStartAddress.isEmpty() && (long)_fileWriter.getFilePointer()  < (long)_windowStartAddress.peek()
+                    && (((long)_windowStartAddress.peek() - (long)_fileWriter.getFilePointer() ) < (long)READBUFFERSIZE))
             {
-                System.out.println("Writer catching up  on Reader..  Start Address::"+ _windowStartAddress.peek() + "File Writer:"+fileWriter.getFilePointer());
+                System.out.println("Writer catching up  on Reader..  Start Address::"+ _windowStartAddress.peek() + "File Writer:"+_fileWriter.getFilePointer());
                 Utils.sleep(10000);
             }
 
             if (flag == 0) {
-                writeInParts(writeBuffer,0,bufferIndex);
-                bufferIndex = 0;
+                writeInParts();
                 for (int i = 0; i < count; i++) {
-                    _windowStartAddress.add(fileWriter.getFilePointer());
-                    System.out.println("Start address added in the queue: "+ fileWriter.getFilePointer());
+                    _windowStartAddress.add(_fileWriter.getFilePointer());
+                    System.out.println("Start address added in the queue: "+ _fileWriter.getFilePointer());
                 }
             }
-
-
 
             if(!isTimeBased || (isTimeBased && flag == -1)) {
                 String obj = tuple.getString(0);
                 byte[] bytes = obj.getBytes();
                 int len = bytes.length;
 
+                //copy length of tuple in a two byte array
                 byte[] length = new byte[2];
                 length[1] = (byte)(len & 0xFF);
                 len = len >> 8;
                 length[0] = (byte)(len & 0xFF);
-                System.arraycopy(length, 0, writeBuffer, bufferIndex, length.length);
-                bufferIndex += length.length;
-                System.arraycopy(bytes, 0, writeBuffer, bufferIndex, bytes.length);
-                bufferIndex += bytes.length;
+
+                //Copy the length of the tuple in two bytes and update the _bufferIndex
+                System.arraycopy(length, 0, _writeBuffer, _bufferIndex, length.length);
+                _bufferIndex += length.length;
+
+                //copy the actual tuple and update the _bufferIndex
+                System.arraycopy(bytes, 0, _writeBuffer, _bufferIndex, bytes.length);
+                _bufferIndex += bytes.length;
             }
 
             if (flag == 1) {
-                writeInParts(writeBuffer,0,bufferIndex);
-                bufferIndex = 0;
-                if((long)fileWriter.getFilePointer() == 0L)
+                writeInParts();
+                if((long)_fileWriter.getFilePointer() == 0L)
                 {
                     for (int i = 0; i < count; i++) {
                         _windowEndAddress.add(MAXFILESIZE - 1L);
@@ -187,15 +250,15 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
                 else {
 
                     for (int i = 0; i < count; i++) {
-                        _windowEndAddress.add(fileWriter.getFilePointer() - 1L);
+                        System.out.println("End Address Added to the queue::"+(_fileWriter.getFilePointer() - 1L));
+                        _windowEndAddress.add(_fileWriter.getFilePointer() - 1L);
                     }
                 }
             }
 
-            if(bufferIndex >= WRITEBUFFERSIZE*percentage) //If the buffer is 75% full
+            if(_bufferIndex >= WRITEBUFFERSIZE*WRITEBUFFERTHRESHOLD) //If the buffer is 95% full
             {
-                writeInParts(writeBuffer,0,bufferIndex);
-                bufferIndex = 0;
+                writeInParts();
             }
         }
         catch(IOException ex)
@@ -204,645 +267,397 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt{
         }
     }
 
-    private void writeInParts(byte[] buffer, int startIndex, int length) throws IOException
+    /**
+     *
+     * @throws IOException
+     */
+    private void writeInParts() throws IOException
     {
-        long remainingSpace = (MAXFILESIZE - fileWriter.getFilePointer());
-        if(length <= remainingSpace) {
-            long temp1 = fileWriter.getFilePointer();
+        long remainingFileSpace = (MAXFILESIZE - _fileWriter.getFilePointer());
+        int bufferDataLength = _bufferIndex;
+        if(bufferDataLength <= remainingFileSpace) {
+            _fileWriter.write(_writeBuffer, 0, bufferDataLength);
 
-            fileWriter.write(writeBuffer, startIndex, length);
-            long temp2 = fileWriter.getFilePointer();
-            fileWriter.seek(temp1);
-            byte c = fileWriter.readByte();
-            long temp3 = fileWriter.getFilePointer();
-            byte d = fileWriter.readByte();
-            fileWriter.seek(temp2);
-
-            if((long)fileWriter.getFilePointer() == MAXFILESIZE)
-                fileWriter.seek(0L);
+            //When FileWriter reaches the MAXFILESIZE after bulk write, wrap up should happen
+            if((long)_fileWriter.getFilePointer() == MAXFILESIZE)
+                _fileWriter.seek(0L);
         }
         else {
-            System.out.println("!!!!!!!!!!!!!!WRITER Wrapping Up :: Data written at the end::"+remainingSpace+" bytes   Data written on top::"+(length - (int)remainingSpace));
-            System.out.println("The intial pointer before wrapping is:: "+ fileWriter.getFilePointer());
-            long temp1 = fileWriter.getFilePointer();
-
-            fileWriter.write(writeBuffer, startIndex, (int)remainingSpace);
-            long temp2 = fileWriter.getFilePointer();
-            fileWriter.seek(temp1);
-            byte c = fileWriter.readByte();
-            long temp3 = fileWriter.getFilePointer();
-            byte d = fileWriter.readByte();
-            fileWriter.seek(temp2);
-
-            fileWriter.seek(0);
-            fileWriter.write(writeBuffer, (int)remainingSpace, length - (int)remainingSpace);
-            long temp = fileWriter.getFilePointer();
-
-            fileWriter.seek(0L);
-            byte a = fileWriter.readByte();
-            long temp5 =fileWriter.getFilePointer();
-            byte b = fileWriter.readByte();
-            System.out.println(getIntFromTwoBytes(a, b));
-            fileWriter.seek(temp);
+            _fileWriter.write(_writeBuffer, 0, (int)remainingFileSpace);
+            _fileWriter.seek(0L);
+            _fileWriter.write(_writeBuffer, (int)remainingFileSpace, bufferDataLength - (int)remainingFileSpace);
         }
+        _bufferIndex = 0;
     }
 
-    @Override
-    public void initiateEmitter(OutputCollector baseCollector)
-    {
-        _collector = baseCollector;
-        Emitter();
-        while(true);
-    }
-
-
-    @Override
-    public void cleanup() {
-        writeBuffer = null;
-        readBuffer = null;
-    }
-
+    /**
+     *
+     */
     private void Emitter() {
 
         _bufferList = new ArrayList<byte[]>();
 
-        DiskReaderThread = new Thread[MaxThread];
-        ThreadSequenceQueue = new LinkedBlockingQueue<Integer>();
-        ProducerConsumerMap = new HashMap<Integer, Integer>();
-        MemoryReader = new Thread(new EmitFromMemory(0));
+        _diskReaderThread = new Thread[MAXTHREAD];
+        _threadSequenceQueue = new LinkedBlockingQueue<Integer>();
+        _producerConsumerMap = new HashMap<Integer, Integer>();
 
+        _memoryReader = new Thread(new EmitFromMemory());
+        _memoryReader.start();
 
-		/*Intialization of all the queues and buffers.*/
-        MemoryReader.start();
-        for (int i = 0; i < MaxThread; i++) {
-            ThreadSequenceQueue.add(i);
-            ProducerConsumerMap.put(i, -1);
-            _bufferList.add(new byte[MaxBufferSize + 2]);
-            DiskReaderThread[i] = new Thread(new DiskToMemory(i));
-        }
-        for (int i = 0; i < MaxThread; i++) {
-            DiskReaderThread[i].start();
+        for (int i = 0; i < MAXTHREAD; i++) {
+            _threadSequenceQueue.add(i);
+            _producerConsumerMap.put(i, -1);
+            //last two bytes will be used to put flag if end of window signal be sent or not
+            _bufferList.add(new byte[READBUFFERSIZE + 2]);
+            _diskReaderThread[i] = new Thread(new DiskToMemory(i));
         }
 
+        for (int i = 0; i < MAXTHREAD; i++) {
+            _diskReaderThread[i].start();
+        }
     }
 
-    private int getIntFromTwoBytes(byte tens, byte units){
-        return (short)((tens & 0xFF) << 8) | ((int)units & 0xFF);
-    }
 
-    protected void sendEndOfWindowSignal() //OutputCollector collector
-    {
-        _collector.emit("mockTickTuple",new Values("__MOCKTICKTUPLE__"));
-    }
+    private class DiskToMemory extends Thread {
+        int __threadSequence;
+        long __start1;
+        long __end1;
+        long __start2;
+        long __end2;
+        boolean __sendEOWSignal;
+        boolean __isWrapLoadNeeded;
 
-    private class DiskToMemory extends Thread
-    {
-        int _threadSequence;
-        Long start;
-        Long endOffset;
-        Long start1;
-        Long endOffset1;
-        boolean sendEOWSignal;
-        boolean isWrapLoadNeeded;
-        public DiskToMemory(int sequence)
-        {
-            _threadSequence = sequence;
-            isWrapLoadNeeded=false;
+        public DiskToMemory(int threadSeq){
+            __threadSequence = threadSeq;
         }
 
         public void run(){
             while(true){
-                synchronized(ThreadSequenceQueue){
-                    while(ThreadSequenceQueue.peek() != _threadSequence){
+                synchronized(_threadSequenceQueue) {
+
+                    //wait till the thread get its turn on the _threadSequenceQueue
+                    while (_threadSequenceQueue.peek() != __threadSequence) {
                         try {
-                            ThreadSequenceQueue.wait();
+                            _threadSequenceQueue.wait();
                         } catch (InterruptedException e) {
                             // TODO Instead of throwing error. Put this to log statement
                             e.printStackTrace();
                         }
                     }
 
-                    while(ProducerConsumerMap.get(_threadSequence) == 1);
+                    while (_producerConsumerMap.get(__threadSequence) == 1) ;
 
-
-                    while(_windowStartAddress.isEmpty());
-
-                    if(startOffset == -1L)
-                    {
+                    if (startOffset == -1L) {
+                        while (_windowStartAddress.isEmpty()) ;
                         startOffset = _windowStartAddress.remove();
-                        System.out.println("The startoffset removed is and by: " + startOffset +" by thread  "+ _threadSequence);
+                        System.out.println("Start Address removed::" + startOffset);
                     }
-                    try{
-                        while(true){
-                            if((!_windowEndAddress.isEmpty() && _windowEndAddress.peek() > startOffset)
-                                    || (startOffset < fileWriter.getFilePointer() && (long)fileWriter.getFilePointer() - (long)startOffset >= 1.5*MaxBufferSize)){
-                                if(!_windowEndAddress.isEmpty() && _windowEndAddress.peek() - startOffset + 1 <= MaxBufferSize){
-                                    start = startOffset;
-                                    endOffset = _windowEndAddress.remove();
-                                    System.out.println("End address removed: "+ endOffset +"  by thread "+ _threadSequence);
-                                    startOffset = -1L;
-                                    sendEOWSignal = true;
-                                    isWrapLoadNeeded = false;
-                                    break;
-                                }
-                                else{
-                                    start = startOffset;
-                                    endOffset = start + MaxBufferSize -1L;
-                                    startOffset = endOffset + 1L;
-                                    sendEOWSignal=false;
-                                    isWrapLoadNeeded = false;
-                                    break;
-                                }
-                            }
-                            else if((!_windowEndAddress.isEmpty() && _windowEndAddress.peek() < startOffset)
-                                    || (startOffset > fileWriter.getFilePointer() && (MAXFILESIZE-startOffset) + fileWriter.getFilePointer()  >= 1.5*MaxBufferSize)){
+                    __start1 = startOffset;
+                    try {
+                        long tempFileWriter;
+                        while (true) {
+                            tempFileWriter = _fileWriter.getFilePointer();
+                            if (tempFileWriter < __start1) { //After Wrapping Up
+                                //If end address is present
+                                if (!_windowEndAddress.isEmpty()) {
 
-                                if(!_windowEndAddress.isEmpty() && _windowEndAddress.peek() > startOffset && _windowEndAddress.peek() - startOffset + 1 <= MaxBufferSize){
-                                    start = startOffset;
-                                    endOffset = _windowEndAddress.remove();
-                                    System.out.println("End address removed : "+ endOffset+"by thread "+ _threadSequence);
-                                    startOffset = -1L;
-                                    sendEOWSignal = true;
-                                    isWrapLoadNeeded = false;
-                                    break;
-                                }
-                                else if(!_windowEndAddress.isEmpty() && _windowEndAddress.peek() > startOffset && _windowEndAddress.peek() - startOffset + 1 > MaxBufferSize){
-                                    start = startOffset;
-                                    endOffset = start + MaxBufferSize -1L;
-                                    startOffset = endOffset + 1L;
-                                    sendEOWSignal=false;
-                                    isWrapLoadNeeded = false;
-                                    break;
-                                }
-                                //else
-                                else if(!_windowEndAddress.isEmpty()  && (MAXFILESIZE-startOffset) + _windowEndAddress.peek()  <= MaxBufferSize){
-                                    start = startOffset;
-                                    endOffset = MAXFILESIZE -1L;
+                                    long tempPeek = _windowEndAddress.peek();
+                                    if (tempPeek > __start1) {
+                                        if ( tempPeek - __start1 + 1 <= READBUFFERSIZE) {
+                                            __end1 = _windowEndAddress.remove();
+                                            System.out.println("End address removed from temppeek > start1" + __end1);
+                                            System.out.println("1 :: End Address removed::" + __end1);
+                                            __sendEOWSignal = true;
+                                            __isWrapLoadNeeded = false;
+                                            startOffset = -1L;
+                                            break;
+                                        } else {
+                                            __end1 = __start1 + READBUFFERSIZE - 1L;
+                                            __sendEOWSignal = false;
+                                            __isWrapLoadNeeded = false;
+                                            startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
+                                            break;
+                                        }
 
-                                    isWrapLoadNeeded = true;
-                                    start1 = 0L;
-                                    endOffset1 = _windowEndAddress.remove();
-                                    System.out.println("End address removed: "+ endOffset1+"by thread "+ _threadSequence);
-                                    startOffset = -1L;
-                                    sendEOWSignal = true;
-                                    System.out.print("jfhuifggvyrlhughhgghfglovovuluytvvytutiuhtiutiuityutyioutihu;hit;htljh");
+                                    } else {
+                                        if (MAXFILESIZE - __start1 + tempPeek + 1 <= READBUFFERSIZE) {
+                                            __end1 = MAXFILESIZE - 1L;
+                                            __start2 = 0L;
+                                            __end2 = _windowEndAddress.remove();
+                                            System.out.println("2 :: End Address removed::" + __end2);
+                                            __sendEOWSignal = true;
+                                            __isWrapLoadNeeded = true;
+                                            startOffset = -1L;
+                                            break;
+                                        } else {
+                                            if (MAXFILESIZE - __start1 >= READBUFFERSIZE) {
+                                                __end1 = __start1 + READBUFFERSIZE - 1L;
+                                                __sendEOWSignal = false;
+                                                __isWrapLoadNeeded = false;
+                                                startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
+                                                break;
+                                            } else {
+                                                __end1 = MAXFILESIZE - 1L;
+                                                __start2 = 0L;
+                                                __end2 = READBUFFERSIZE - (MAXFILESIZE - __start1) - 1L;
+                                                __sendEOWSignal = false;
+                                                __isWrapLoadNeeded = true;
+                                                startOffset = (__end2 + 1L) % MAXFILESIZE;
+                                                break;
+                                            }
+                                        }
 
-                                    break;
-                                }
-                                else if(MAXFILESIZE-startOffset >= MaxBufferSize) {
-                                    start = startOffset;
-                                 //   if (((long) start + (long) MaxBufferSize) - 1L <= MAXFILESIZE) {
-
-                                        endOffset = start + MaxBufferSize - 1L;
-                                        isWrapLoadNeeded = false;
-                                        sendEOWSignal = false;
-                                        startOffset = (endOffset + 1L) % MAXFILESIZE;
+                                    }
+                                } else {
+                                    if (MAXFILESIZE - __start1 >= READBUFFERSIZE) {
+                                        System.out.println("Here1");
+                                        __end1 = __start1 + READBUFFERSIZE - 1L;
+                                        __sendEOWSignal = false;
+                                        __isWrapLoadNeeded = false;
+                                        startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
                                         break;
-                                   // }
-                                }
-                                else {
-                                    start = startOffset;
-                                    endOffset = MAXFILESIZE - 1;
-                                    start1 = 0L;
-                                    endOffset1 = MaxBufferSize - (endOffset + 1 - start) - 1;
-                                    isWrapLoadNeeded = true;
-                                    sendEOWSignal = false;
-                                    startOffset = endOffset1 + 1L;
-                                    break;
-                                }
-                                }
-                                /*
-                                else{
-                                if(MAXFILESIZE - startOffset >= MaxBufferSize){
-                                    start = startOffset;
-                                    endOffset =start + MaxBufferSize-1L;
-                                    startOffset = (endOffset + 1L)%MAXFILESIZE;
-                                    sendEOWSignal=false;
-                                    isWrapLoadNeeded = false;
-                                    break;
-                                }
-
-                                else{
-                                        start = startOffset;
-                                        endOffset = MAXFILESIZE -1L;
-
-                                        isWrapLoadNeeded = true;
-                                        start1 = 0L;
-                                        endOffset1 = MaxBufferSize -2 - (endOffset - start);
-                                        startOffset = endOffset1 + 1L;
-                                        sendEOWSignal = false;
+                                    } else if(MAXFILESIZE - __start1 + tempFileWriter + 1 >= READBUFFERSIZE) {
+                                        System.out.println("Here2");
+                                        __end1 = MAXFILESIZE - 1L;
+                                        __start2 = 0L;
+                                        __end2 = READBUFFERSIZE - (MAXFILESIZE - __start1) - 1L;
+                                        __sendEOWSignal = false;
+                                        __isWrapLoadNeeded = true;
+                                        startOffset = (__end2 + 1L) % MAXFILESIZE;
                                         break;
                                     }
-                                }*/
+                                }
+
+
+                            } else if(tempFileWriter > __start1 + READBUFFERSIZE){ //Before Wrapping Up //if(tempFileWriter > __start1)
+                                if (!_windowEndAddress.isEmpty()) {
+                                    long tempPeek = _windowEndAddress.peek();
+                                    if (tempPeek > __start1 && tempPeek - __start1 + 1 <= READBUFFERSIZE) {
+                                        __end1 = _windowEndAddress.remove();
+                                        System.out.println("3 :: file writer pointer::" + tempFileWriter);
+                                        System.out.println("3 :: End Address removed::" + __end1);
+                                        __sendEOWSignal = true;
+                                        __isWrapLoadNeeded = false;
+                                        startOffset = -1L;
+                                        break;
+                                    } else {
+                                        __end1 = __start1 + READBUFFERSIZE - 1L;
+                                        __sendEOWSignal = false;
+                                        __isWrapLoadNeeded = false;
+                                        startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
+                                        break;
+                                    }
+
+                                } else if (tempFileWriter - __start1 + 1L >= READBUFFERSIZE) {
+                                    __end1 = __start1 + READBUFFERSIZE - 1L;
+                                    __sendEOWSignal = false;
+                                    __isWrapLoadNeeded = false;
+                                    startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
+                                    break;
+                                }
 
                             }
+                        }
+
                     } catch (IOException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
-                    System.out.println();
-                    int threadnum =ThreadSequenceQueue.remove();
-                    System.out.println("Current thread removed:  "+ threadnum);
-                    ThreadSequenceQueue.add(threadnum);
-                    System.out.println("Next thread in the queue  "+ ThreadSequenceQueue.peek());
-                    ThreadSequenceQueue.notifyAll();
-                }
 
-                try {
-                    if(isWrapLoadNeeded){
-                        loadBuffer1(start, endOffset, 0);
-                        byte a = _bufferList.get(_threadSequence)[0];
-                        byte b = _bufferList.get(_threadSequence)[1];
-                        int idx1 = (int)(endOffset - start) + 1;
-                        System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&length of part 1::" + endOffset+ "  and new index should be "+ idx1);
-                        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~start and endoffset from part1 buffer"+ start + "  " + endOffset +  "   " + _threadSequence);
-                        if(sendEOWSignal)
-                        {
-                            System.out.println("Wrap around with eowsignal");
-                            loadBufferWithEOWSignal1(start1, endOffset1, idx1);
-                            System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&length of part 2::" + endOffset1+ "  and start index should be "+ idx1);
-                            a = _bufferList.get(_threadSequence)[0];
-                            b = _bufferList.get(_threadSequence)[1];
+                    int threadnum = _threadSequenceQueue.remove();
+                    _threadSequenceQueue.add(threadnum);
+                    _threadSequenceQueue.notifyAll();
 
-                            byte c = _bufferList.get(_threadSequence)[idx1];
-                            byte d = _bufferList.get(_threadSequence)[idx1+1];
-
-
-//                            System.out.println("length of part 1::" + index);
-                            //System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ start1 and endoffset1 part2 buffer"+ start1 + "  " + endOffset1  +  "   " + _threadSequence);
-                        }
-                        else
-                        {
-                            System.out.println("Wrap around with out eowsignal");
-                            loadBuffer1(start1, endOffset1, idx1);
-                            System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&length of part 2::" + endOffset1+ "  and start index should be "+ idx1);
-                           // System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ start1 and endoffset1 prt2 ubffer"+ start1 + "  " + endOffset1  +  "   " + _threadSequence);
-                            if((long)((endOffset-start+1)+(endOffset1-start1+1)) != 50000000l)
-                            {
-                                System.out.println("++++++++++++++++++++++this should not have happend++++++++++++++++++++++++++++");
+                    //}//Commented Synchorized TODO: check this condition when everything else is working
+                    try {
+                        if (__isWrapLoadNeeded) {
+                            System.out.println("Start1 :: "+ __start1 + "   End1::"+ __end1 + "Start2 :: "+ __start2 + "   End2::"+ __end2);
+                            int idx1 = loadBuffer(__start1, __end1, 0);
+                            int idx2 = loadBuffer(__start2, __end2, idx1);
+                            if (__sendEOWSignal) {
+                                _bufferList.get(__threadSequence)[idx1 + idx2] = -1;
+                                _bufferList.get(__threadSequence)[idx1 + idx2 + 1] = -1;
+                            } else {
+                                _bufferList.get(__threadSequence)[idx1 + idx2] = 0;
+                                _bufferList.get(__threadSequence)[idx1 + idx2 + 1] = 0;
                             }
-
-                            a = _bufferList.get(_threadSequence)[0];
-                            b = _bufferList.get(_threadSequence)[1];
-
-                            byte c = _bufferList.get(_threadSequence)[idx1];
-                            byte d = _bufferList.get(_threadSequence)[idx1+1];
-
-                        }
-                    }
-                    else{
-                        if(sendEOWSignal)
-                        {
-                            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ send end of window start and endoffset buffer"+ start + "  " + endOffset  +  "   " + _threadSequence);
-                            loadBufferWithEOWSignal1(start, endOffset, 0);
-                            byte a = _bufferList.get(_threadSequence)[0];
-                            byte b = _bufferList.get(_threadSequence)[1];
-                            byte c = _bufferList.get(_threadSequence)[2];
-                        }
-                        else
-                        {
-                            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ no end of window start and endoffset and buffer"+ start + "  " + endOffset +  "   " + _threadSequence);
-                            loadBuffer1(start, endOffset, 0);
-                            if((long)(endOffset-start+1) != 50000000l)
-                            {
-                                System.out.println("++++++++++++++++++++++this should not have happend++++++++++++++++++++++++++++");
+                        } else {
+                            int idx1 = loadBuffer(__start1, __end1, 0);
+                            if (__sendEOWSignal) {
+                                System.out.println("-1 -1 set by::" + __threadSequence);
+                                _bufferList.get(__threadSequence)[idx1] = -1;
+                                _bufferList.get(__threadSequence)[idx1 + 1] = -1;
+                            } else {
+                                System.out.println("Value of idx1 is::" + idx1);
+                                _bufferList.get(__threadSequence)[idx1] = 0;
+                                _bufferList.get(__threadSequence)[idx1 + 1] = 0;
+                               // System.out.println("!!!Filling Buffer::" + _bufferList.get(__threadSequence)[47988000]);
                             }
-
-                            byte a = _bufferList.get(_threadSequence)[0];
-                            byte b = _bufferList.get(_threadSequence)[1];
-                            byte c = _bufferList.get(_threadSequence)[2];
                         }
+
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
                     }
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-                ProducerConsumerMap.put(_threadSequence, 1);
+
+                    System.out.println("The buffer ready to be read is:: " + __threadSequence);
+                    _producerConsumerMap.put(__threadSequence, 1);
+                }//to be removed
             }
         }
 
-        private void loadBufferWithEOWSignal(long s, long e, int index) throws IOException {
-            fileReader.seek(s);
-            int length = (int) (e - s + 1);
+        private int loadBuffer(long s, long e, int index) throws IOException {
+            _fileReader.seek(s);
 
+            int length = (int) (e - s + 1);
+            System.out.println("Inside LoadBuffer:: Start ::" + s + "    End::"+ e + "  Length::"+length);
+            byte[] tempArr = new byte[length];
             try {
-                fileReader.read(_bufferList.get(_threadSequence), index, length);
-                _bufferList.get(_threadSequence)[length] = -1;
-                _bufferList.get(_threadSequence)[length+1] = -1;
+                System.out.println("Start offset::"+s + "   End Offset::"+e + "by thread::"+__threadSequence + " with File Length::"+ _fileReader.length());
+                _fileReader.readFully(tempArr, 0, length);
+                System.arraycopy(tempArr, 0, _bufferList.get(__threadSequence), index, tempArr.length);
             }
             catch(Exception ex)
             {
-                System.out.println("Exception Caught with  length ::" + length);
+                System.out.println("Exception Caught with  length ::"+length + "with start ::" + s);
                 ex.printStackTrace();
             }
+            return length;
 
-        }
-        private void loadBufferWithEOWSignal1(long s, long e, int index) throws IOException {
-            fileReader.seek(s);
-            int length = (int) (e - s + 1);
-            byte[] tempArr = new byte[length+2];
-            try {
-                fileReader.read(tempArr, 0, length);
-
-                tempArr[length] = -1;
-                tempArr[length+1] = -1;
-
-                System.arraycopy(tempArr, 0, _bufferList.get(_threadSequence), index, tempArr.length);
-
-            }
-            catch(Exception ex)
-            {
-                System.out.println("Exception Caught with  length ::" + length);
-                ex.printStackTrace();
-            }
-
-        }
-
-        private void loadBuffer1(long s, long e, int index) throws IOException {
-            fileReader.seek(s);
-            int length = (int) (e - s + 1);
-            System.out.println("Copying " + length + "  bytes into buffer number "+ _threadSequence);
-            byte[] tempArr = new byte[length+2];
-            try {
-                fileReader.read(tempArr, 0, length);
-
-                tempArr[length] = 0;
-                tempArr[length+1] = 0;
-
-                System.arraycopy(tempArr, 0, _bufferList.get(_threadSequence), index, tempArr.length);
-
-            }
-            catch(Exception ex)
-            {
-                System.out.println("Exception Caught with  length ::" + length);
-                ex.printStackTrace();
-            }
-
-        }
-
-        private void loadBuffer(long s, long e, int index) throws IOException {
-            fileReader.seek(s);
-            int length = (int) (e - s + 1);
-
-            try {
-                fileReader.read(_bufferList.get(_threadSequence), index, length);
-                _bufferList.get(_threadSequence)[length] = 0;
-                _bufferList.get(_threadSequence)[length+1] = 0;
-            }
-            catch(Exception ex)
-            {
-                System.out.println("Exception Caught with length ::" + length);
-                ex.printStackTrace();
-            }
         }
     }
 
-    private class EmitFromMemory extends Thread{
-        int currentBuffer;
-        int start;
-        long counter;
+    private class EmitFromMemory extends Thread
+    {
+        int __currentBuffer;
+        int __bufferIndex;
+        int __length;
+        byte __ten;
+        byte __unit;
 
-        public EmitFromMemory(int bufferNumber)
-        {
-            currentBuffer = bufferNumber;
-            start =0;
-
+        public EmitFromMemory(){
+            __currentBuffer =0;
+            __bufferIndex=0;
         }
 
         public void run(){
-            int length =0;
-            while(true)
-            {
-                while(ProducerConsumerMap.get(currentBuffer%MaxThread) == -1);
-             //   System.out.println("******************* reading from buffer:: ********************" + currentBuffer);
-                //System.out.println("Start here is::"+start);
-                length = getLength1();
-                if(length != tlength) {
-                    System.out.println("length of the tuple: " + length);
-                    byte a = _bufferList.get(currentBuffer)[0];
-                    byte c = _bufferList.get(currentBuffer)[1];
-                    byte[]prevBuff = new byte[5000];
-                    System.arraycopy(_bufferList.get((currentBuffer-1) %MaxThread),MaxBufferSize-1-4000,prevBuff,0,4000);
-                    byte[] buff = _bufferList.get(currentBuffer);
-                    byte b = _bufferList.get(currentBuffer)[2];
-
-                }
-                if(start + length <= MaxBufferSize)
-                {
-                    byte[] tempArray = Arrays.copyOfRange(_bufferList.get(currentBuffer), start, start+length);
-                    String tupleData = new String(tempArray);
-                    if(counter%10000==0)System.out.println("COUNT:"+counter);
-
-//                    if(!tupleData.substring(0,6).equals("Harini")) {
-  //                      System.out.println("!!!!!The out going counter and  tuple is: " + counter + " " + tupleData);
-    //                }
-                    _collector.emit("dataStream", new Values(tupleData)); //TODO uncomment when putting real system
-                    counter++;
-                    start = start + length;
-                }
-                else
-                {
-                    int partLength = MaxBufferSize - start;
-                    byte[] tempArray = new byte[length];  //Arrays.copyOfRange(_bufferList.get(currentBuffer), start, partLength);
-                    System.arraycopy(_bufferList.get(currentBuffer), start, tempArray, 0, partLength);
-                    String Data = new String(tempArray);
-                    //System.out.println("part data::" + Data);
-                    System.out.println("******************* reading part from buffer:: ********************" + currentBuffer);
-                    ProducerConsumerMap.put(currentBuffer, -1);
-                    currentBuffer++;
-                    currentBuffer = currentBuffer%MaxThread;
-                    start =0;
-                    length = length - partLength;
-                    while(ProducerConsumerMap.get(currentBuffer%MaxThread) == -1);
-
-                   System.out.println("******************* reading remaining part from buffer:: ********************" + currentBuffer);
-
-                    System.arraycopy(_bufferList.get(currentBuffer), start, tempArray, partLength, length);
-
-                    String tupleData = new String(tempArray);
-                    if(counter%10000==0)System.out.println("COUNT:"+counter);
-                //    if(!tupleData.substring(0,6).equals("Harini")) {
-                  //      System.out.println("!!!!!!!The out going counter and  tuple is: " + counter + " " + tupleData);
-
-                    //}
-                    _collector.emit("dataStream", new Values(tupleData)); //TODO uncomment when putting real system
-                    counter++;
-                    start = start + length;
-                }
+            while(_producerConsumerMap.get(__currentBuffer)==-1);
+            while(true){
+                getLength();
+                emitTuple();
             }
+
         }
-        private int getLength1()
+        private int getIntFromTwoBytes(byte tens, byte units){
+            return (short)((tens & 0xFF) << 8) | ((int)units & 0xFF);
+        }
+
+        private void getLength()
         {
-            byte ten;
-            byte unit;
-            if(start == MaxBufferSize-1)
+            if(__bufferIndex < READBUFFERSIZE - 1L)
             {
-                ten = _bufferList.get(currentBuffer)[start];
-                unit = _bufferList.get(currentBuffer)[start+1];
-                int tempLength = getIntFromTwoBytes(ten,unit);
-                if(tempLength == -1)
-                {
-                    sendEndOfWindowSignal();
-                    ProducerConsumerMap.put(currentBuffer, -1);
-                    currentBuffer++;
-                    currentBuffer = currentBuffer%MaxThread;
-                    while(ProducerConsumerMap.get(currentBuffer%MaxThread) == -1);
+                __ten = _bufferList.get(__currentBuffer)[__bufferIndex++];
+                __unit = _bufferList.get(__currentBuffer)[__bufferIndex++];
 
-                    start =0;
-                    tempLength = getLength1();
-                    return tempLength;
-                }
-                if(tempLength==0)
+            }
+            else if(__bufferIndex == READBUFFERSIZE - 1L)
+            {
+                System.out.println("We are in the special case");
+                __ten = _bufferList.get(__currentBuffer)[__bufferIndex];
+
+                /*Special case*/
+                __unit = _bufferList.get(__currentBuffer)[__bufferIndex+1];
+                int len = getIntFromTwoBytes(__ten, __unit);
+                if(len == -1)
                 {
-                    System.out.println("Position of 0s::"+ start + "  &  "+(start+1));
+                    __length = len;
+                    return;
                 }
 
-                ProducerConsumerMap.put(currentBuffer, -1);
-                currentBuffer++;
-                currentBuffer = currentBuffer%MaxThread;
-                start =0;
-                while(ProducerConsumerMap.get(currentBuffer) == -1);
+                __currentBuffer++;
+                __currentBuffer = __currentBuffer%MAXTHREAD;
+                __bufferIndex = 0;
+                System.out.println("setting buff to 0 in special case buffer nuumber "+ __currentBuffer);
 
-                unit = _bufferList.get(currentBuffer)[start];
-                start = start + 1;
-                tempLength = getIntFromTwoBytes(ten,unit);
-                return tempLength;
-            }
+                while(_producerConsumerMap.get(__currentBuffer)==-1);
 
-            ten = _bufferList.get(currentBuffer)[start];
-            unit = _bufferList.get(currentBuffer)[start+1];
-            int tempLength = getIntFromTwoBytes(ten,unit);
-            if(tempLength == -1) {
-                sendEndOfWindowSignal();
-            }
-            else if(tempLength == 0)
-            {
-                byte[] temp = new byte[1000];
-                System.arraycopy(_bufferList.get(currentBuffer),start-100,temp,0,1000);
-                System.out.println("Position of 0s::"+ start + "  &  "+(start+1));
+                __unit = _bufferList.get(__currentBuffer)[__bufferIndex++];
+
             }
             else
             {
-                start = start+2;
-                return tempLength;
+                __ten = _bufferList.get(__currentBuffer)[__bufferIndex++];
+                __unit = _bufferList.get(__currentBuffer)[__bufferIndex];
+                System.out.println("This is for -1 or 0 from buffer "+ __currentBuffer);
             }
-            ProducerConsumerMap.put(currentBuffer, -1);
-            currentBuffer++;
-            currentBuffer = currentBuffer%MaxThread;
-            while(ProducerConsumerMap.get(currentBuffer) == -1);
-
-            start =0;
-            tempLength = getLength1();
-            return tempLength;
-
-
+            __length = getIntFromTwoBytes(__ten, __unit);
         }
 
-        public int getLength()
+        private void emitTuple()
         {
-            byte ten;
-            byte unit;
-            if(start < MaxBufferSize - 1){
-                ten = _bufferList.get(currentBuffer)[start];
-                unit = _bufferList.get(currentBuffer)[start+1];
-                start = start + 2;
-                System.out.println("####################### reading length from buffer:: ********************" + currentBuffer);
-                int tempLength = getIntFromTwoBytes(ten,unit);
-
-                if(tempLength == -1)
-                {
-                    System.out.println("####################### Mock tuple sent from ::" + currentBuffer);
-                    sendEndOfWindowSignal();
-                }
-                else
-                {
-                    if(tempLength != tlength)System.out.println("Length1::"+tempLength + "   from buffer::"+currentBuffer);
-                    return tempLength;
-                }
-                ProducerConsumerMap.put(currentBuffer, -1);
-                currentBuffer++;
-                currentBuffer = currentBuffer%MaxThread;
-                while(ProducerConsumerMap.get(currentBuffer) == -1);
-                System.out.println("####################### reading length from buffer after emitting mock:: ********************" + currentBuffer);
-                start =0;
-                ten = _bufferList.get(currentBuffer)[start];
-                unit = _bufferList.get(currentBuffer)[start+1];
-                start = start + 2;
-                tempLength = getIntFromTwoBytes(ten,unit);
-
-                //tempLength = getLength();
-                if(tempLength != tlength)
-                    System.out.println("Length2::"+tempLength + "   from buffer::"+currentBuffer);
-                return tempLength;
+            if(__length == 0)
+            {
+                _producerConsumerMap.put(__currentBuffer, -1);
+                System.out.println("No data in::"+__currentBuffer);
+                System.out.println("setting buff to 0 in __length == 0 buffer nuumber "+ __currentBuffer);
+                __currentBuffer++;
+                __currentBuffer = __currentBuffer%MAXTHREAD;
+                while(_producerConsumerMap.get(__currentBuffer)==-1);
+                __bufferIndex =0;
+                return;
             }
-            else if (start < MaxBufferSize){
-                ten = _bufferList.get(currentBuffer)[start];
-                unit = _bufferList.get(currentBuffer)[start+1];
-                int tempLength = getIntFromTwoBytes(ten,unit);
-                System.out.println("####################### reading length from buffer:: ********************" + currentBuffer);
-                if(tempLength == -1)
-                {
-                    sendEndOfWindowSignal();
-                    ProducerConsumerMap.put(currentBuffer, -1);
-                    currentBuffer++;
-                    currentBuffer = currentBuffer%MaxThread;
-                    while(ProducerConsumerMap.get(currentBuffer%MaxThread) == -1);
+            else if(__length == -1)
+            {
+                _producerConsumerMap.put(__currentBuffer, -1);
+                System.out.println("No data in::"+__currentBuffer);
+                sendEndOfWindowSignal();
+                System.out.println("EOW sent from Buffer::"+ __currentBuffer);
+                System.out.println("setting buff to 0 in __length == -1 in buffer nuumber "+ __currentBuffer);
+                __currentBuffer++;
+                __currentBuffer = __currentBuffer%MAXTHREAD;
+                while(_producerConsumerMap.get(__currentBuffer)==-1);
+                __bufferIndex =0;
 
-                    System.out.println("####################### reading length from buffer after emitting mock:: ********************" + currentBuffer);
-                    start =0;
-                    ten = _bufferList.get(currentBuffer)[start];
-                    unit = _bufferList.get(currentBuffer)[start+1];
-                    start = start + 2;
-                    tempLength = getIntFromTwoBytes(ten,unit);
-
-//                    tempLength = getLength();
-                    if(tempLength != tlength)
-                        System.out.println("Length3::"+tempLength);
-                    return tempLength;
-                }
-
-                ProducerConsumerMap.put(currentBuffer, -1);
-                currentBuffer++;
-                currentBuffer = currentBuffer%MaxThread;
-                start =0;
-                while(ProducerConsumerMap.get(currentBuffer) == -1);
-
-                System.out.println("####################### reading length from buffer :: ********************" + currentBuffer);
-                unit = _bufferList.get(currentBuffer)[start];
-                start = start + 1;
-                tempLength = getIntFromTwoBytes(ten,unit);
-                if(tempLength != tlength)
-                    System.out.println("Length4::"+tempLength);
-                return tempLength;
-
+                return;
             }
-            else{
-                ten = _bufferList.get(currentBuffer)[start];
-                unit = _bufferList.get(currentBuffer)[start+1];
-                int tempLength = getIntFromTwoBytes(ten,unit);
-                if(tempLength == -1)
-                {
-                    sendEndOfWindowSignal();
-                    System.out.println("####################### reading mock from buffer and sending -1-1 mock:: ********************" + currentBuffer);
-                }
+            else if(__bufferIndex + __length <= READBUFFERSIZE)
+            {
+                byte[] tempArray = new byte[__length];
+                System.arraycopy(_bufferList.get(__currentBuffer),__bufferIndex,tempArray,0, __length);
+                String tupleData = new String(tempArray);
+                _collector.emit("dataStream", new Values(tupleData));
+               // System.out.println("Thiis normal:: Reading from current buffer "+ __currentBuffer +" and from index "+ __bufferIndex + " having length "+ __length);
 
-                ProducerConsumerMap.put(currentBuffer, -1);
-                currentBuffer++;
-                currentBuffer = currentBuffer%MaxThread;
-                while(ProducerConsumerMap.get(currentBuffer%MaxThread) == -1);
-                System.out.println("####################### reading length from buffer:: ********************" + currentBuffer);
+                __bufferIndex = __bufferIndex + __length;
 
-                start = 0;
-                ten = _bufferList.get(currentBuffer)[start];
-                unit = _bufferList.get(currentBuffer)[start+1];
-                start = start + 2;
-                tempLength = getIntFromTwoBytes(ten,unit);
+//                System.out.println("The new bufferindex "+ __bufferIndex);
+                return;
+            }
+            else {
+                byte[] tempArray = new byte[__length];
+                int partLength = READBUFFERSIZE - __bufferIndex;
+                System.arraycopy(_bufferList.get(__currentBuffer),__bufferIndex,tempArray,0, partLength);
+                System.out.println("Switching from " + __currentBuffer + " to "+ (__currentBuffer+1)%MAXTHREAD);
+                System.out.println("Buffer Index of Incomplete tuple ::"+ _bufferIndex + " Tuple is of length::" + __length + " Amount read from this buffer is::" + partLength);
+                _producerConsumerMap.put(__currentBuffer, -1);
+                System.out.println("No data in::"+__currentBuffer);
+                __currentBuffer++;
+                __currentBuffer = __currentBuffer%MAXTHREAD;
 
-//                tempLength =getLength();
-                if(tempLength != tlength)
-                    System.out.println("Length5::"+tempLength);
-                return tempLength;
+                while(_producerConsumerMap.get(__currentBuffer)==-1);
+
+                __bufferIndex =0;
+                System.out.println("setting buff to 0 in __length == wrap up tuple length buffer nuumber "+ __currentBuffer);
+                __length = __length - partLength;
+                System.arraycopy(_bufferList.get(__currentBuffer),__bufferIndex,tempArray,partLength, __length);
+                System.out.println("Remaining bytes read from this buffer::"+ __length + " from" + __currentBuffer);
+                String tupleData = new String(tempArray);
+                _collector.emit("dataStream", new Values(tupleData));
+                __bufferIndex = __bufferIndex + __length;
+                System.out.println("New buffer Index :: " + __bufferIndex);
+                return;
             }
         }
     }
 }
+

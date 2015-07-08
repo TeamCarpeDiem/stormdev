@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class TumblingWindow extends BaseWindowBolt{
+public class TumblingWindow extends BaseWindowBolt1 {
     final static Logger LOG = Logger.getLogger(TumblingWindow.class.getName());
     protected OutputCollector _collector;
     long count;

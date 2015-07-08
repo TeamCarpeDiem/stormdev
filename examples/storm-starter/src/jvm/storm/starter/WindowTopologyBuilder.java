@@ -4,7 +4,7 @@ import backtype.storm.topology.BoltDeclarer;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.topology.base.BaseRichBolt;
 import storm.starter.Interfaces.IWindowBolt;
-import storm.starter.bolt.BaseWindowBolt;
+import storm.starter.bolt.BaseWindowBolt1;
 
 
 /**
@@ -15,7 +15,7 @@ import storm.starter.bolt.BaseWindowBolt;
 public class WindowTopologyBuilder extends TopologyBuilder {
 
 
-    public BoltDeclarer setBolt(String id, BaseWindowBolt bolt, Number parallelism_hint) throws Exception {
+    public BoltDeclarer setBolt(String id, BaseWindowBolt1 bolt, Number parallelism_hint) throws Exception {
 
         Class<?> x = bolt.getClass();
         BoltDeclarer obj = null;

@@ -66,7 +66,11 @@ public class LandmarkWindowBolt extends BaseWindowBolt implements IWindowBolt{
                 public void run() {
                     while(true) {
                         LOG.info("Initiated Emitter!!!");
-                        initiateEmitter(_collector);
+                        try {
+                            initiateEmitter(_collector);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             };

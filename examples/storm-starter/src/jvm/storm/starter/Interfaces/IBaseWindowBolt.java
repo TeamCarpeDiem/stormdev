@@ -31,5 +31,5 @@ public interface IBaseWindowBolt {
      * The OutputCollector's object taken as a parameter should be used to emit tuple from the base class
      * @param baseCollector
      */
-    void initiateEmitter(OutputCollector baseCollector);
+    void initiateEmitter(OutputCollector baseCollector) throws InterruptedException;
 }

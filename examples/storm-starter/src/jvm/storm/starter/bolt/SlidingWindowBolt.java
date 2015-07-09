@@ -85,7 +85,11 @@ public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
         {
             Thread thread = new Thread() {
                 public void run() {
-                    initiateEmitter(_collector);
+                    try {
+                        initiateEmitter(_collector);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             };
             thread.start();

@@ -75,7 +75,7 @@ public class RandomIntegerSpout extends BaseRichSpout {
         str[9] = "Harinihhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh";
         //String str1 = "HariniSachin";
         int strIndex = _rand.nextInt(9);
-        _collector.emit(new Values(str[0]));
+        _collector.emit(new Values(str[strIndex]));
     }
 
     @Override

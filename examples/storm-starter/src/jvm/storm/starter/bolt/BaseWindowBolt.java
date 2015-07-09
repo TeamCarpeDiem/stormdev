@@ -157,8 +157,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
     }
 
     //@Override
-    public void initiateEmitter(OutputCollector baseCollector)
-    {
+    public void initiateEmitter(OutputCollector baseCollector) throws InterruptedException {
         _collector = baseCollector;
         Emitter();
         //while(true);
@@ -293,7 +292,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
     /**
      *
      */
-    private void Emitter() {
+    private void Emitter() throws InterruptedException {
 
         _bufferList = new ArrayList<byte[]>();
 
@@ -303,6 +302,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
 
         _memoryReader = new Thread(new EmitFromMemory());
         _memoryReader.start();
+      //  _memoryReader.join();
 
         for (int i = 0; i < MAXTHREAD; i++) {
             _threadSequenceQueue.add(i);
@@ -314,11 +314,13 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
 
         for (int i = 0; i < MAXTHREAD; i++) {
             _diskReaderThread[i].start();
+          //  _diskReaderThread[i].join();
         }
     }
 
 
     private class DiskToMemory extends Thread {
+
         int __threadSequence;
         long __start1;
         long __end1;
@@ -332,6 +334,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
         }
 
         public void run(){
+            System.out.println("Disk to memory threads begin");
             while(true){
                 synchronized(_threadSequenceQueue) {
 
@@ -429,7 +432,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
                                 }
 
 
-                            } else if(tempFileWriter > __start1 + READBUFFERSIZE){ //Before Wrapping Up //if(tempFileWriter > __start1)
+                            } else if(tempFileWriter > __start1 + READBUFFERSIZE || !_windowEndAddress.isEmpty()){ //Before Wrapping Up //if(tempFileWriter > __start1)
                                 if (!_windowEndAddress.isEmpty()) {
                                     long tempPeek = _windowEndAddress.peek();
                                     if (tempPeek > __start1 && tempPeek - __start1 + 1 <= READBUFFERSIZE) {
@@ -541,6 +544,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
         }
 
         public void run(){
+            System.out.println("Emitter threads begin");
             while(_producerConsumerMap.get(__currentBuffer)==-1);
             while(true){
                 getLength();

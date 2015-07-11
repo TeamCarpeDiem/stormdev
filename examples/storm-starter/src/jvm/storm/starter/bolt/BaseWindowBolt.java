@@ -17,40 +17,40 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * Created by Dave root on 7/7/15.
+ * Created by Harini and Sachin on 7/7/15.
  */
 public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
 
     /******************************* Configurable Parameters *******************************/
-    long MAXFILESIZE;
-    int WRITEBUFFERSIZE;
-    int READBUFFERSIZE;
-    double WRITEBUFFERTHRESHOLD;
-    int MAXTHREAD;
-    String FILEPATH;
+    long MAXFILESIZE; // File size for storing tuples temporarily. The value is configurable in proeperty file
+    int WRITEBUFFERSIZE; // Memory storage of incoming tuple, before writing to file
+    int READBUFFERSIZE; // Memory storage for tuples before emitting out
+    double WRITEBUFFERTHRESHOLD; // TODO check for buffer to be full and then move data to disk
+    int MAXTHREAD; // Number of threads to be spawned
+    String FILEPATH; // File path where the data will be stored for disk reader to read
 
     /******************************* from window object  *******************************/
-    boolean isTimeBased;
+    boolean isTimeBased; //If window is timebased or not
 
     /******************************* Updated while storing tuple  *******************************/
-    protected BlockingQueue<Long> _windowStartAddress;
-    protected BlockingQueue<Long> _windowEndAddress;
+    protected BlockingQueue<Long> _windowStartAddress; //Save starting of window as and when a starting tuple is received
+    protected BlockingQueue<Long> _windowEndAddress; // Save ending of the window as and when end of window tuple is received
     byte[] _writeBuffer; //Buffer which is used to perform bulk write to the disk
-    int _bufferIndex;
+    int _bufferIndex; // Current position in _writeBuffer
     RandomAccessFile _fileWriter; //File to which contents will be written
     int secondCount; //TODO Remove before releasing final code
 
     /******************************* Updated while reading data from disk to memory  *******************************/
-    OutputCollector _collector;
-    List<byte[]> _bufferList;
-    Thread[] _diskReaderThread;
-    BlockingQueue<Integer> _threadSequenceQueue;
-    HashMap<Integer, Integer> _producerConsumerMap;
-    long startOffset;
-    RandomAccessFile _fileReader;
+    OutputCollector _collector; // collector is used for emitting tuples
+    List<byte[]> _bufferList; // The list of Read buffer which are used for storing tuples in memory before emitting
+    Thread[] _diskReaderThread; // The list of threads which reads data from disk and move to memory
+    BlockingQueue<Integer> _threadSequenceQueue; // The queue that keeps the sequence of the treads
+    HashMap<Integer, Integer> _producerConsumerMap; // keep tracks of buffers if they are read or ready to be read
+    long startOffset; // Starting position from where data to be read.
+    RandomAccessFile _fileReader; //Used to seek startoffset position in file/disk.
 
     /******************************* Updated while emitting data from memory  *******************************/
-    Thread _memoryReader;
+    Thread _memoryReader; //Emitter thread which emits tuple out
 
     /******************************* Testing *****************************///TODO to be removed
     int tLength;
@@ -145,22 +145,31 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
     {
     }
 
+    /**
+     * This function validates if the tuple is a tick tuple or not
+     * @param tuple
+     * @return
+     */
     //@Override
     public boolean isTickTuple(Tuple tuple) {
         return tuple.getSourceComponent().equals(Constants.SYSTEM_COMPONENT_ID)
                 && tuple.getSourceStreamId().equals(Constants.SYSTEM_TICK_STREAM_ID);
     }
 
-    protected void sendEndOfWindowSignal() //OutputCollector collector
+    void sendEndOfWindowSignal()
     {
         _collector.emit("mockTickTuple",new Values("__MOCKTICKTUPLE__"));
     }
 
+    /**
+     * This is invoked once by user to run the emitter
+     * @param baseCollector
+     * @throws InterruptedException
+     */
     //@Override
     public void initiateEmitter(OutputCollector baseCollector) throws InterruptedException {
         _collector = baseCollector;
         Emitter();
-        //while(true);
     }
 
 
@@ -172,30 +181,30 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
     }
 
     /**
-
+     * add value of file pointer to  startAddress queue when a tuple with start flag is received
      * @param address
      */
-    protected void addStartAddress(Long address) {
+    void addStartAddress(Long address) {
         if(address >= 0) {
             _windowStartAddress.add(address);
         }
     }
 
     /**
-     *
+     *  add value of file pointer to end Address queue when a tuple with start flag is received
      * @param address
      */
-    protected void addEndAddress(Long address) {
+    void addEndAddress(Long address) {
         if(address >= 0) {
             _windowEndAddress.add(address);
         }
     }
 
     /**
-     *
-     * @param tuple
-     * @param flag
-     * @param count
+     * This function is called by a user when a tuple needs to be stored.
+     * @param tuple : tuple to be stored
+     * @param flag : mark if it is a start, end or normal tuple
+     * @param count : how many time that tuple's need to be stored, iff it is a  start or end tuple
      */
     //@Override
     public void storeTuple(Tuple tuple, int flag, int count)
@@ -267,7 +276,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
     }
 
     /**
-     *
+     * Write data from WRITEBUFFER to disk/file. If maximum file size is reached then start storing from the top
      * @throws IOException
      */
     private void writeInParts() throws IOException
@@ -290,7 +299,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
     }
 
     /**
-     *
+     * This function sets up the environment for emitting tuple and start all respective threads.
      */
     private void Emitter() throws InterruptedException {
 
@@ -597,8 +606,12 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
             __length = getIntFromTwoBytes(__ten, __unit);
         }
 
+        /**
+         *  Emits tuple after interpreting the bytes read from the read buffer
+         */
         private void emitTuple()
         {
+            //If length is 0 then mark the buffer as read and move to next buffer.
             if(__length == 0)
             {
                 _producerConsumerMap.put(__currentBuffer, -1);

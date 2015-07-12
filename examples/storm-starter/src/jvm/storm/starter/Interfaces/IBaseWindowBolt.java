@@ -29,7 +29,7 @@ public interface IBaseWindowBolt {
      * The initiateEmitter class takes a basecollector as a parameter from the class which receives the tuple.
      * If the collector is not from the class that receives the tuple then it will cause null pointer exception.
      * The OutputCollector's object taken as a parameter should be used to emit tuple from the base class
-     * @param baseCollector
+     * @param
      */
-    void initiateEmitter(OutputCollector baseCollector) throws InterruptedException;
+    void initiateEmitter() throws InterruptedException;
 }

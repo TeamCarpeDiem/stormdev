@@ -7,12 +7,14 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import org.apache.log4j.Logger;
+import storm.starter.HelperClasses.WindowObject;
 import storm.starter.Interfaces.IWindowBolt;
 
 import java.util.Map;
 
 /**
  * Created by Harini Rajendran on 6/29/15.
+ * Modified by Sachin Jain on 7/12/15. Removed all unnecessary overrides. Moved the control to BaseWindowBolt.
  */
 
 public class LandmarkWindowBolt extends BaseWindowBolt implements IWindowBolt{
@@ -31,20 +33,20 @@ public class LandmarkWindowBolt extends BaseWindowBolt implements IWindowBolt{
      * @param sBy slideBy value
      * @param isTBased Boolean to indicate whether the window is time based on count based
      */
-    public LandmarkWindowBolt(long wlength, long sBy, boolean isTBased)
+    public LandmarkWindowBolt(WindowObject wObject)
     {
-        super(wlength, sBy, isTBased);
+        super(wObject);
         LOG.info("Created a LandMark Window Bolt");
         windowStart = 1;
-        windowEnd = wlength;
+        windowEnd = wObject.getWindowLength();
         tupleCount = 0;
-        slideBy = (int)sBy;
-        wLength = wlength;
+        slideBy = (int)wObject.getSlideBy();
+        wLength = wObject.getWindowLength();
+        isTimeBased = wObject.getIsTimeBased();
 
-        if(isTBased)
+        if(isTimeBased)
         {
-            isTimeBased = isTBased;
-            for(int i = 0 ; i < sBy; i++) {
+            for(int i = 0 ; i < slideBy; i++) {
                 addStartAddress(0l);
                 LOG.info("Window Start::" + tupleCount);
             }
@@ -59,24 +61,7 @@ public class LandmarkWindowBolt extends BaseWindowBolt implements IWindowBolt{
      *
      * @param tuple The input tuple to be processed
      */
-    public final void execute(Tuple tuple) {
-        if(!isExecutedOnce) //Initiating the emitter thread which will emit the tuples from the disk.
-        {
-            Thread thread = new Thread() {
-                public void run() {
-                    while(true) {
-                        LOG.info("Initiated Emitter!!!");
-                        try {
-                            initiateEmitter(_collector);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            };
-            thread.start();
-            isExecutedOnce = true;
-        }
+    public final void delegateExecute(Tuple tuple) {
         if(isTimeBased)
         {
             if (isTickTuple(tuple)) {
@@ -119,43 +104,6 @@ public class LandmarkWindowBolt extends BaseWindowBolt implements IWindowBolt{
         }
     }
 
-    @Override
-    /**
-     * @param conf The Storm configuration for this bolt. This is the configuration provided to the topology merged in with cluster configuration on this machine.
-     * @param context This object can be used to get information about this task's place within the topology, including the task id and component id of this task, input and output information, etc.
-     * @param collector The collector is used to emit tuples from this bolt. Tuples can be emitted at any time, including the prepare and cleanup methods. The collector is thread-safe and should be saved as an instance variable of this bolt object.
-     */
-    public void prepare(Map conf, TopologyContext context, OutputCollector collector) {
-        super.prepare(conf, context, collector);
-        _collector = collector;
-    }
-
-    @Override
-    /**
-     * @param declarer this is used to declare output stream ids, output fields, and whether or not each output stream is a direct stream
-     */
-    public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declareStream("dataStream", new Fields("RandomInt"));
-        declarer.declareStream("mockTickTuple", new Fields("MockTick"));
-    }
-
-    public void cleanup()
-    {
-        System.out.println("Cleaned Up!!!");
-    }
-
-    @Override
-    /**
-     * Declare configuration specific to this component.
-     */
-    public Map<String, Object> getComponentConfiguration() {
-        if(isTimeBased) {
-        Config conf = new Config();
-        conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, 1);
-        return conf;
-        }
-        return null;
-    }
 
     public boolean isMockTick(Tuple tuple){
         return true;

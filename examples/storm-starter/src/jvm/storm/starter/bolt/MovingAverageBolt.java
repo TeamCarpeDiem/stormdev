@@ -45,7 +45,7 @@ public class MovingAverageBolt extends BaseRichBolt implements IWindowBolt{
             LOG.info("The tuple data is:: " + tuple.getString(0));
             LOG.info("Window Avg is::" + avg + "    Window Total::" + cma + "   Count::" + count);
 
-            if(count != 137500L)
+            if(count != 25000L)
             {
                 System.out.println("#####################################WHAT THE FUCK###################################");
             }

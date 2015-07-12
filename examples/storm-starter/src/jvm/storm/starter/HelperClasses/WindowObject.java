@@ -8,6 +8,7 @@ import java.io.Serializable;
 
 /**
  * Created by sachin on 6/9/15. Window object will be used to pass parameters related to windowing mechanism
+ * Modified by Sachin createwindows() funtion will accept WindowObject as a parameter.
  */
 public class WindowObject implements Serializable{
 
@@ -145,7 +146,7 @@ public class WindowObject implements Serializable{
             window = new SlidingWindowBolt(wObject);
         }
         if(windowingMechanism.equals("landmark")) {
-            window = new LandmarkWindowBolt(windowLength, slideBy, isTimeBased);
+            window = new LandmarkWindowBolt(wObject);
         }
 
 

@@ -225,6 +225,12 @@ public class BaseWindowBolt1 extends BaseRichBolt implements IBaseWindowBolt{
     }
 
     @Override
+    public void initiateEmitter()
+    {
+        Emitter();
+        while(true);
+    }
+
     public void initiateEmitter(OutputCollector baseCollector)
     {
         _collector = baseCollector;

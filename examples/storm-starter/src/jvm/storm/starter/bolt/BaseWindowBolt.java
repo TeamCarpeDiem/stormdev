@@ -1,13 +1,16 @@
 package storm.starter.bolt;
 
+import backtype.storm.Config;
 import backtype.storm.Constants;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
+import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import backtype.storm.utils.Utils;
+import org.apache.log4j.Logger;
 import storm.starter.HelperClasses.WindowObject;
 import storm.starter.Interfaces.IBaseWindowBolt;
 
@@ -17,9 +20,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * Created by Dave root on 7/7/15.
+ * Created by Sachin and Harini on 7/7/15.
  */
-public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
+public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
 
     /******************************* Configurable Parameters *******************************/
     long MAXFILESIZE;
@@ -27,10 +30,24 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
     int READBUFFERSIZE;
     double WRITEBUFFERTHRESHOLD;
     int MAXTHREAD;
+    int TICKTUPLEFREQUENCY;
     String FILEPATH;
 
-    /******************************* from window object  *******************************/
+    /******************************* Configurable Parameters *******************************/
+    final static Logger LOG = Logger.getLogger(BaseWindowBolt.class.getName());
+
+    /******************************* from window object n windowing params  *********************/
     boolean isTimeBased;
+    long windowStart; //Variable which keeps track of the window start
+    long windowEnd; //Variable which keeps track of the window end
+    long tupleCount; //Variable to keep track of the tuple count for time based window
+    long slideBy;
+    int stCount =0;
+    int edCount =0;
+    int nCount = 0;//testing
+    int tCount = 0;//testing
+    long hrCount = 0; //testing
+
 
     /******************************* Updated while storing tuple  *******************************/
     protected BlockingQueue<Long> _windowStartAddress;
@@ -40,7 +57,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
     RandomAccessFile _fileWriter; //File to which contents will be written
     int secondCount; //TODO Remove before releasing final code
 
-    /******************************* Updated while reading data from disk to memory  *******************************/
+    /********************* Updated while reading data from disk to memory  **********************/
     OutputCollector _collector;
     List<byte[]> _bufferList;
     Thread[] _diskReaderThread;
@@ -48,15 +65,17 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
     HashMap<Integer, Integer> _producerConsumerMap;
     long startOffset;
     RandomAccessFile _fileReader;
-
-    /******************************* Updated while emitting data from memory  *******************************/
+    boolean sendOnlyOnce = true;
+    /************************* Updated while emitting data from memory  *************************/
     Thread _memoryReader;
 
-    /******************************* Testing *****************************///TODO to be removed
+    /****************************** Testing variable *****************************///TODO to be removed
     int tLength;
 
     public BaseWindowBolt(WindowObject wObj)
     {
+        LOG.info("Created Sliding Window");
+
         tLength = 3997; //TODO to be removed
         Properties prop = new Properties();
         InputStream input = null;
@@ -70,6 +89,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
             READBUFFERSIZE = Integer.valueOf(prop.getProperty("readBufferSize"));
             WRITEBUFFERTHRESHOLD = Double.valueOf(prop.getProperty("bufferThreshold"));
             MAXTHREAD = Integer.valueOf(prop.getProperty("numberOfThreads"));
+            TICKTUPLEFREQUENCY = Integer.valueOf(prop.getProperty("tickTupleFrequency"));
             startOffset = -1L; // used by disk reader thread to get the start offset oof the disk
         } catch (IOException e) {
             e.printStackTrace();
@@ -81,7 +101,20 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
             throw new IllegalArgumentException("Slideby should be a Positive value");
         }
 
+//Windowing params
         isTimeBased = wObj.getIsTimeBased();
+        windowStart = 1;
+        windowEnd = wObj.getWindowLength();
+        tupleCount = 0;
+        slideBy = wObj.getSlideBy();
+//end of windowing params
+        if(isTimeBased)
+        {
+            LOG.info("Window Start::" + tupleCount);
+            addStartAddress(0l);
+            windowStart += wObj.getSlideBy();
+        }
+
         _windowStartAddress = new LinkedBlockingQueue<Long>();
         _windowEndAddress = new LinkedBlockingQueue<Long>();
 
@@ -90,42 +123,18 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
         _bufferIndex = 0;
         secondCount = 0;
 
+        //Initiate emiiter
+    /*    Thread thread = new Thread() {
+            public void run() {
+                try {
+                    initiateEmitter();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        thread.start();*/
     }
-
-    //TODO Remove this constructor if one with windowobject works.
-    public BaseWindowBolt(long wLength, long sBy, boolean isTBased)
-    {
-        Properties prop = new Properties();
-        InputStream input = null;
-        try {
-            FILEPATH = System.getProperty("user.home")+"//WindowsContent";
-            input = new FileInputStream("config.properties");
-            prop.load(input);
-            MAXFILESIZE = Long.valueOf(prop.getProperty("maximumFileSize"));
-            WRITEBUFFERSIZE = Integer.valueOf(prop.getProperty("writeBufferSize"));
-            READBUFFERSIZE = Integer.valueOf(prop.getProperty("readBufferSize"));
-            WRITEBUFFERTHRESHOLD = Double.valueOf(prop.getProperty("bufferThreshold"));
-            MAXTHREAD = Integer.valueOf(prop.getProperty("numberOfThreads"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if(wLength <= 0) {
-            throw new IllegalArgumentException("Window length is either null or negative");
-        }
-        if(sBy <= 0) {
-            throw new IllegalArgumentException("Slideby should be a Positive value");
-        }
-
-        isTimeBased = isTBased;
-        _windowStartAddress = new LinkedBlockingQueue<Long>();
-        _windowEndAddress = new LinkedBlockingQueue<Long>();
-
-        _writeBuffer = new byte[WRITEBUFFERSIZE];
-
-        _bufferIndex = 0;
-        secondCount = 0;
-    }
-
 
     /*    Abstract Functions   */
     public void prepare(Map conf, TopologyContext context, OutputCollector collector)
@@ -136,14 +145,31 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+        _collector = collector;
     }
 
     public void execute(Tuple tuple)
     {
+        delegateExecute(tuple);
+
+        //Initiate the emitter thread
+        if(sendOnlyOnce) {
+            try {
+                initiateEmitter();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            sendOnlyOnce = false;
+        }
     }
+
+    protected abstract void delegateExecute(Tuple tuple);
 
     public void declareOutputFields(OutputFieldsDeclarer declarer)
     {
+        declarer.declareStream("dataStream", new Fields("RandomInt"));
+        declarer.declareStream("mockTickTuple", new Fields("MockTick"));
+
     }
 
     //@Override
@@ -158,8 +184,8 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
     }
 
     //@Override
-    public void initiateEmitter(OutputCollector baseCollector) throws InterruptedException {
-        _collector = baseCollector;
+    public void initiateEmitter() throws InterruptedException {
+       // _collector = baseCollector;
         Emitter();
         //while(true);
     }
@@ -170,6 +196,19 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
         _writeBuffer = null;
         File fp = new File(FILEPATH, "a");
         fp.delete();
+    }
+
+    @Override
+    /**
+     * Declare configuration specific to this component.
+     */
+    public Map<String, Object> getComponentConfiguration() {
+        if(isTimeBased) {
+            Map<String, Object> conf = new HashMap<String, Object>();
+            conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, TICKTUPLEFREQUENCY);
+            return conf;
+        }
+        return null;
     }
 
     /**
@@ -304,7 +343,6 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
 
         _memoryReader = new Thread(new EmitFromMemory());
         _memoryReader.start();
-        //  _memoryReader.join();
 
         for (int i = 0; i < MAXTHREAD; i++) {
             _threadSequenceQueue.add(i);
@@ -314,9 +352,9 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
             _diskReaderThread[i] = new Thread(new DiskToMemory(i));
         }
 
+
         for (int i = 0; i < MAXTHREAD; i++) {
             _diskReaderThread[i].start();
-            //  _diskReaderThread[i].join();
         }
     }
 

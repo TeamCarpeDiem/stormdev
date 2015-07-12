@@ -16,6 +16,7 @@ import java.util.Map;
 /**
  * Created by Harini Rajendran on 6/7/15.
  * Modified by Sachin Jain on 6/13/2015. Moving emittter logic to BaseWindowBolt
+ * Modified by Sachin Jain on 7/12/15. Removed all unnecessary overrides. Moved the control to BaseWindowBolt.
  */
 
 public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
@@ -32,28 +33,6 @@ public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
     int nCount = 0;//testing
     int tCount = 0;//testing
     long hrCount = 0; //testing
-    /**
-     * Constructor which takes the WindowObject as the parameter
-     * @param wLength window length
-     * @param sBy slideBy value
-     * @param isTBased Boolean to indicate whether the window is time based on count based
-     */
-    public SlidingWindowBolt(long wLength, long sBy, boolean isTBased)
-    {
-        super(wLength, sBy, isTBased);
-        LOG.info("Created Sliding Window");
-        windowStart = 1;
-        windowEnd = wLength;
-        tupleCount = 0;
-        slideBy = sBy;
-        if(isTBased)
-        {
-            isTimeBased = isTBased;
-            LOG.info("Window Start::" + tupleCount);
-            addStartAddress(0l);
-            windowStart += sBy;
-        }
-    }
 
     public SlidingWindowBolt(WindowObject wObject)
     {
@@ -80,21 +59,7 @@ public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
      *
      * @param tuple The input tuple to be processed
      */
-    public final void execute(Tuple tuple) {
-        if(!isExecutedOnce) //Initiating the emitter thread which will emit the tuples from the disk.
-        {
-            Thread thread = new Thread() {
-                public void run() {
-                    try {
-                        initiateEmitter(_collector);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            };
-            thread.start();
-            isExecutedOnce = true;
-        }
+    public final void delegateExecute(Tuple tuple) {
         if(isTimeBased)
         {
             if (isTickTuple(tuple)) {
@@ -151,26 +116,8 @@ public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
                 windowStart += slideBy;
             }
         }
-    }
 
-    @Override
-    /**
-     * @param conf The Storm configuration for this bolt. This is the configuration provided to the topology merged in with cluster configuration on this machine.
-     * @param context This object can be used to get information about this task's place within the topology, including the task id and component id of this task, input and output information, etc.
-     * @param collector The collector is used to emit tuples from this bolt. Tuples can be emitted at any time, including the prepare and cleanup methods. The collector is thread-safe and should be saved as an instance variable of this bolt object.
-     */
-    public void prepare(Map conf, TopologyContext context, OutputCollector collector) {
-        super.prepare(conf, context, collector);
-        _collector = collector;
-    }
 
-    @Override
-    /**
-     * @param declarer this is used to declare output stream ids, output fields, and whether or not each output stream is a direct stream
-     */
-    public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declareStream("dataStream", new Fields("RandomInt"));
-        declarer.declareStream("mockTickTuple", new Fields("MockTick"));
     }
 
     @Override
@@ -178,16 +125,4 @@ public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
         return false;
     }
 
-    @Override
-    /**
-     * Declare configuration specific to this component.
-     */
-    public Map<String, Object> getComponentConfiguration() {
-        if(isTimeBased) {
-            Map<String, Object> conf = new HashMap<String, Object>();
-            conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, 1);
-            return conf;
-        }
-        return null;
-    }
 }

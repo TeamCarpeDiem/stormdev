@@ -381,7 +381,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
                                             startOffset = -1L;
                                             break;
                                             //difference between end removed and start offset is greater than buffer capacity
-                                        } else if(tempPeek - __start1 + 1 >= READBUFFERSIZE + 1L){
+                                        } else if(tempPeek - __start1 >= READBUFFERSIZE + 1L){
                                             __end1 = __start1 + READBUFFERSIZE - 1L;
                                             __sendEOWSignal = false;
                                             __isWrapLoadNeeded = false;
@@ -428,7 +428,8 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
                                 }
                                 //The window address is not present
                                 else {
-                                    if (_windowEndAddress.isEmpty() && MAXFILESIZE - __start1 >= READBUFFERSIZE) {
+                                    if (_windowEndAddress.isEmpty() &&
+                                            MAXFILESIZE - __start1 > READBUFFERSIZE) {
                                         //System.out.println("Here1");
                                         __end1 = __start1 + READBUFFERSIZE - 1L;
                                         __sendEOWSignal = false;
@@ -436,7 +437,7 @@ public class BaseWindowBolt extends BaseRichBolt implements IBaseWindowBolt {
                                         System.out.println("0.1 :: End Address removed::" + (__end1+1));
                                         startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
                                         break;
-                                    } else if(_windowEndAddress.isEmpty() && (long)(MAXFILESIZE - __start1) + tempFileWriter >= 1L + READBUFFERSIZE) {
+                                    } else if(_windowEndAddress.isEmpty() && (long)(MAXFILESIZE - __start1 ) + tempFileWriter >= 1L + READBUFFERSIZE) {
                                         //System.out.println("Here2");
                                         __end1 = MAXFILESIZE - 1L;
                                         __start2 = 0L;

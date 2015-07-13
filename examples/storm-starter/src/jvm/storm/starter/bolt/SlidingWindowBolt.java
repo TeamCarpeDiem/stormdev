@@ -21,11 +21,6 @@ public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
     boolean isExecutedOnce = false; //Boolean which controls thread spawning
     boolean isTimeBased = false;
     long slideBy;
-    int stCount =0;
-    int edCount =0;
-    int nCount = 0;//testing
-    int tCount = 0;//testing
-    long hrCount = 0; //testing
 
     public SlidingWindowBolt(WindowObject wObject)
     {
@@ -54,24 +49,9 @@ public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
     public final void delegateExecute(Tuple tuple) {
         if(isTimeBased)
         {
+            LOG.info("Count for this second::"+secondCount);
+            secondCount = 0;
             if (isTickTuple(tuple)) {
-                nCount++;
-                tCount++;
-
-                if(nCount == 60)
-                {
-                    if(tCount == 3600)
-                    {
-                        LOG.info("!!!!!!!!!!!Count for this hr::" + tCount);
-
-                        tCount = 0;
-                        hrCount = 0;
-                    }
-                    LOG.info("Count for this Minute::" + secondCount);//Testing
-                    hrCount = hrCount + secondCount;
-                    secondCount = 0;//Testing
-                    nCount = 0;
-                }
                 tupleCount++;
                 if(tupleCount == windowStart-1)//If the tuple marks the window beginning
                 {
@@ -92,19 +72,15 @@ public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
         }
         else {
             tupleCount++;
-            stCount++;
-            edCount++;
 
             if(tupleCount != windowStart && tupleCount != windowEnd) //The tuple is in the middle of a window
                 storeTuple(tuple, -1, 1);
             if (tupleCount == windowEnd) { //If the tuple marks the window end
                 storeTuple(tuple, 1, 1);
                 windowEnd += slideBy;
-                edCount=0;
             }
             if (tupleCount == windowStart) {//If the tuple marks the window beginning
                 storeTuple(tuple, 0, 1);
-                stCount =0;
                 windowStart += slideBy;
             }
         }

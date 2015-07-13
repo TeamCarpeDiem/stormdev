@@ -49,9 +49,9 @@ public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
     public final void delegateExecute(Tuple tuple) {
         if(isTimeBased)
         {
-            LOG.info("Count for this second::"+secondCount);
-            secondCount = 0;
             if (isTickTuple(tuple)) {
+                LOG.info("Count for this second::"+secondCount);
+                secondCount = 0;
                 tupleCount++;
                 if(tupleCount == windowStart-1)//If the tuple marks the window beginning
                 {

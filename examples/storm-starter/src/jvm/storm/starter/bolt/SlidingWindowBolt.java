@@ -1,17 +1,10 @@
 package storm.starter.bolt;
 
-import backtype.storm.Config;
 import backtype.storm.task.OutputCollector;
-import backtype.storm.task.TopologyContext;
-import backtype.storm.topology.OutputFieldsDeclarer;
-import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import org.apache.log4j.Logger;
 import storm.starter.HelperClasses.WindowObject;
 import storm.starter.Interfaces.IWindowBolt;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by Harini Rajendran on 6/7/15.
@@ -37,7 +30,6 @@ public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
     public SlidingWindowBolt(WindowObject wObject)
     {
         super(wObject);
-        LOG.info("Created Sliding Window");
         windowStart = 1;
         windowEnd = wObject.getWindowLength();
         tupleCount = 0;

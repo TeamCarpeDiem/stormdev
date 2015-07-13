@@ -28,9 +28,12 @@ public class WindowObject implements Serializable{
         windowingMechanism = "tumbling";
     }
 
-    public WindowObject(String type, long wLength,boolean isTBased)
-    {
+    public WindowObject(String type, long wLength,boolean isTBased) throws Exception {
         windowingMechanism = type;
+        if((!windowingMechanism.equals("tumbling") && !windowingMechanism.equals("Tumbling")))
+        {
+            throw new Exception("This window requires Slide by value");
+        }
         windowLength= wLength;
         slideBy = wLength; //by default it is a tumbling window
         isTimeBased= isTBased;
@@ -137,7 +140,7 @@ public class WindowObject implements Serializable{
             if (windowLength == slideBy)
                 window = new SlidingWindowBolt(wObject);
             else
-                throw new Exception("Window Length and Slide By Values are not same");
+                throw new Exception("Window Length and Slide By Values are not same for tumbling window");
         }
         else if(windowingMechanism.equals("sliding") || windowingMechanism.equals("Sliding")) {
             window = new SlidingWindowBolt(wObject);

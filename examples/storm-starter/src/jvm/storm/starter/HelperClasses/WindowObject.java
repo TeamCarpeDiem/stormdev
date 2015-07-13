@@ -133,20 +133,20 @@ public class WindowObject implements Serializable{
         BaseWindowBolt window = null;
         WindowObject wObject = new WindowObject(windowingMechanism,windowLength, slideBy, isTimeBased );
 
-        if(windowingMechanism.equals("tumbling")){
+        if(windowingMechanism.equals("tumbling") || windowingMechanism.equals("Tumbling")){
             if (windowLength == slideBy)
                 window = new SlidingWindowBolt(wObject);
-               // window = new SlidingWindowBolt(windowLength, slideBy, isTimeBased);
             else
                 throw new Exception("Window Length and Slide By Values are not same");
         }
-
-        if(windowingMechanism.equals("sliding")) {
-           // window = new SlidingWindowBolt(windowLength, slideBy, isTimeBased);
+        else if(windowingMechanism.equals("sliding") || windowingMechanism.equals("Sliding")) {
             window = new SlidingWindowBolt(wObject);
         }
-        if(windowingMechanism.equals("landmark")) {
+        else if(windowingMechanism.equals("landmark") || windowingMechanism.equals("Landmark")) {
             window = new LandmarkWindowBolt(wObject);
+        }
+        else {
+            throw new Exception("Not a valid window type. Available window types are 1) Sliding \n 2) Tumbling and 3) Landmark");
         }
         return window;
     }

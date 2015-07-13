@@ -121,18 +121,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
 
         _bufferIndex = 0;
         secondCount = 0;
-
-        //Initiate emiiter
-    /*    Thread thread = new Thread() {
-            public void run() {
-                try {
-                    initiateEmitter();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-        thread.start();*/
     }
 
     /*    Abstract Functions   */
@@ -145,6 +133,11 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
             e.printStackTrace();
         }
         _collector = collector;
+        try {
+            initiateEmitter();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public void execute(Tuple tuple)
@@ -152,14 +145,14 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
         delegateExecute(tuple);
 
         //Initiate the emitter thread
-        if(sendOnlyOnce) {
+       /* if(sendOnlyOnce) {
             try {
                 initiateEmitter();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             sendOnlyOnce = false;
-        }
+        }*/
     }
 
     protected abstract void delegateExecute(Tuple tuple);
@@ -315,8 +308,10 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
         long remainingFileSpace = (MAXFILESIZE - _fileWriter.getFilePointer());
         int bufferDataLength = _bufferIndex;
         if(bufferDataLength <= remainingFileSpace) {
+            long temp = _fileWriter.getFilePointer();
             _fileWriter.write(_writeBuffer, 0, bufferDataLength);
-
+            if(_fileWriter.getFilePointer() == temp && _bufferIndex != 0)
+                System.out.println("######## DATA NOT WRITTEN TO FILE####");
             //When FileWriter reaches the MAXFILESIZE after bulk write, wrap up should happen
             if((long)_fileWriter.getFilePointer() == MAXFILESIZE)
                 _fileWriter.seek(0L);
@@ -333,7 +328,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
      *
      */
     private void Emitter() throws InterruptedException {
-
         _bufferList = new ArrayList<byte[]>();
 
         _diskReaderThread = new Thread[MAXTHREAD];

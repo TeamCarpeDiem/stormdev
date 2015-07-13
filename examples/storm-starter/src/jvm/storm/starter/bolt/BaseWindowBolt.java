@@ -69,7 +69,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     public BaseWindowBolt(WindowObject wObj)
     {
         LOG.info("Created Sliding Window");
-        TICKTUPLEFREQUENCY = 1;
         tLength = 3997; //TODO to be removed
         Properties prop = new Properties();
         InputStream input = null;
@@ -83,6 +82,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
             READBUFFERSIZE = Integer.valueOf(prop.getProperty("readBufferSize"));
             WRITEBUFFERTHRESHOLD = Double.valueOf(prop.getProperty("bufferThreshold"));
             MAXTHREAD = Integer.valueOf(prop.getProperty("numberOfThreads"));
+            TICKTUPLEFREQUENCY = Integer.valueOf(prop.getProperty("TickTupleFrequency"));
             startOffset = -1L; // used by disk reader thread to get the start offset oof the disk
         } catch (IOException e) {
             e.printStackTrace();

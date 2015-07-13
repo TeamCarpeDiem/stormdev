@@ -69,13 +69,11 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     public BaseWindowBolt(WindowObject wObj)
     {
         LOG.info("Created Sliding Window");
-        tLength = 3997; //TODO to be removed
         Properties prop = new Properties();
         InputStream input = null;
         try {
             FILEPATH = System.getProperty("user.home")+"//WindowsContent";
             input = new FileInputStream("config.properties");
-            System.out.println("Filepath for the run::::::::"+ FILEPATH);
             prop.load(input);
             MAXFILESIZE = Long.valueOf(prop.getProperty("maximumFileSize"));
             WRITEBUFFERSIZE = Integer.valueOf(prop.getProperty("writeBufferSize"));
@@ -101,12 +99,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
         tupleCount = 0;
         slideBy = wObj.getSlideBy();
 //end of windowing params
-        if(isTimeBased)
-        {
-            LOG.info("Window Start::" + tupleCount);
-            addStartAddress(0l);
-            windowStart += wObj.getSlideBy();
-        }
 
         _windowStartAddress = new LinkedBlockingQueue<Long>();
         _windowEndAddress = new LinkedBlockingQueue<Long>();
@@ -137,16 +129,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     public void execute(Tuple tuple)
     {
         delegateExecute(tuple);
-
-        //Initiate the emitter thread
-       /* if(sendOnlyOnce) {
-            try {
-                initiateEmitter();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            sendOnlyOnce = false;
-        }*/
     }
 
     protected abstract void delegateExecute(Tuple tuple);
@@ -171,9 +153,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
 
     //@Override
     public void initiateEmitter() throws InterruptedException {
-       // _collector = baseCollector;
         Emitter();
-        //while(true);
     }
 
 

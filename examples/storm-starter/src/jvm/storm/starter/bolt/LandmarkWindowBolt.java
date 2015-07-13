@@ -1,16 +1,10 @@
 package storm.starter.bolt;
 
-import backtype.storm.Config;
 import backtype.storm.task.OutputCollector;
-import backtype.storm.task.TopologyContext;
-import backtype.storm.topology.OutputFieldsDeclarer;
-import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import org.apache.log4j.Logger;
 import storm.starter.HelperClasses.WindowObject;
 import storm.starter.Interfaces.IWindowBolt;
-
-import java.util.Map;
 
 /**
  * Created by Harini Rajendran on 6/29/15.
@@ -27,12 +21,7 @@ public class LandmarkWindowBolt extends BaseWindowBolt implements IWindowBolt{
     boolean isTimeBased = false;
     int slideBy;//Variable used to indicate when the window start has to be slided
     long wLength;
-    /**
-     * Constructor which takes the WindowObject as the parameter
-     * @param wlength window length
-     * @param sBy slideBy value
-     * @param isTBased Boolean to indicate whether the window is time based on count based
-     */
+
     public LandmarkWindowBolt(WindowObject wObject)
     {
         super(wObject);

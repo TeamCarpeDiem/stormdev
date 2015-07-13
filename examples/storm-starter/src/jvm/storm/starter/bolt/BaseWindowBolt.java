@@ -42,12 +42,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     long windowEnd; //Variable which keeps track of the window end
     long tupleCount; //Variable to keep track of the tuple count for time based window
     long slideBy;
-    int stCount =0;
-    int edCount =0;
-    int nCount = 0;//testing
-    int tCount = 0;//testing
-    long hrCount = 0; //testing
-
 
     /******************************* Updated while storing tuple  *******************************/
     protected BlockingQueue<Long> _windowStartAddress;
@@ -65,7 +59,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     HashMap<Integer, Integer> _producerConsumerMap;
     long startOffset;
     RandomAccessFile _fileReader;
-    boolean sendOnlyOnce = true;
+    //boolean sendOnlyOnce = true;
     /************************* Updated while emitting data from memory  *************************/
     Thread _memoryReader;
 

@@ -148,9 +148,6 @@ public class WindowObject implements Serializable{
         if(windowingMechanism.equals("landmark")) {
             window = new LandmarkWindowBolt(wObject);
         }
-
-
-
         return window;
     }
 }

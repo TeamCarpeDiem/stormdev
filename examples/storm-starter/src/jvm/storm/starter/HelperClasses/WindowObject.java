@@ -30,10 +30,6 @@ public class WindowObject implements Serializable{
 
     public WindowObject(String type, long wLength,boolean isTBased) throws Exception {
         windowingMechanism = type;
-        if((!windowingMechanism.equals("tumbling") && !windowingMechanism.equals("Tumbling")))
-        {
-            throw new Exception("This window requires Slide by value");
-        }
         windowLength= wLength;
         slideBy = wLength; //by default it is a tumbling window
         isTimeBased= isTBased;

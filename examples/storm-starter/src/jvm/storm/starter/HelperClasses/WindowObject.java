@@ -28,13 +28,6 @@ public class WindowObject implements Serializable{
         windowingMechanism = "tumbling";
     }
 
-    public WindowObject(String type, long wLength,boolean isTBased) throws Exception {
-        windowingMechanism = type;
-        windowLength= wLength;
-        slideBy = wLength; //by default it is a tumbling window
-        isTimeBased= isTBased;
-    }
-
     public WindowObject(String type, long wLength, long slideB, boolean isTBased)
     {
         windowingMechanism = type;

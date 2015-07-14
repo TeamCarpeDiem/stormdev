@@ -29,7 +29,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     long MAXFILESIZE;
     int WRITEBUFFERSIZE;
     int READBUFFERSIZE;
-    double WRITEBUFFERTHRESHOLD;
     int MAXTHREAD;
     int TICKTUPLEFREQUENCY;
     String FILEPATH;
@@ -49,7 +48,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     protected BlockingQueue<Long> _windowEndAddress;
     byte[] _writeBuffer; //Buffer which is used to perform bulk write to the disk
     int _bufferIndex;
-    //RandomAccessFile _fileWriter; //File to which contents will be written
     FileOutputStream _fileWriter;
     int secondCount; //TODO Remove before releasing final code
 
@@ -61,13 +59,9 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     HashMap<Integer, Integer> _producerConsumerMap;
     long startOffset;
     RandomAccessFile _fileReader;
-    //boolean sendOnlyOnce = true;
+
     /************************* Updated while emitting data from memory  *************************/
     Thread _memoryReader;
-
-    /****************************** Testing variable *****************************///TODO to be removed
-    int tLength;
-
 
     /****************************** Constructor *****************************/
     public BaseWindowBolt(WindowObject wObj)
@@ -81,7 +75,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
             MAXFILESIZE = Long.valueOf(prop.getProperty("maximumFileSize"));
             WRITEBUFFERSIZE = Integer.valueOf(prop.getProperty("writeBufferSize"));
             READBUFFERSIZE = Integer.valueOf(prop.getProperty("readBufferSize"));
-            WRITEBUFFERTHRESHOLD = Double.valueOf(prop.getProperty("bufferThreshold"));
             MAXTHREAD = Integer.valueOf(prop.getProperty("numberOfThreads"));
             TICKTUPLEFREQUENCY = Integer.valueOf(prop.getProperty("TickTupleFrequency"));
             startOffset = -1L; // used by disk reader thread to get the start offset oof the disk
@@ -199,7 +192,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     }
 
     /**
-
+     * This function is used to update the Start Address Blocking Queue
      * @param address
      */
     protected void addStartAddress(Long address) {
@@ -209,7 +202,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     }
 
     /**
-     *
+     *This function is used to update the End Address Blocking Queue
      * @param address
      */
     protected void addEndAddress(Long address) {
@@ -231,15 +224,17 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     {
         FileChannel fc = _fileWriter.getChannel();
         try {
-
-            //TODO Catching Up part
+            //If the Writer is about to catch up the reader because of the speed difference between the reader and
+            //the writer, the Writer has to be blocked to prevent the data from getting corrupted. Hence we are blocking
+            //the writer for 10 seconds.
             if(!_windowStartAddress.isEmpty() && fc.position()  < (long)_windowStartAddress.peek()
                     && (((long)_windowStartAddress.peek() - fc.position() ) < (long)READBUFFERSIZE))
             {
-                System.out.println("Writer catching up  on Reader..  Start Address::"+ _windowStartAddress.peek());
+                LOG.info("Writer catching up  on Reader..  Start Address::"+ _windowStartAddress.peek());
                 Utils.sleep(10000);
             }
 
+            //If the tuple marks the beginning of the window, then start address queue has to be updated
             if (flag == 0) {
                 writeInParts();
                 for (int i = 0; i < count; i++) {
@@ -247,10 +242,18 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                 }
             }
 
+            //If the tuple is a tuple in the middle of the window, it has to be added to the buffer
             if(!isTimeBased || (isTimeBased && flag == -1)) {
                 String obj = tuple.getString(0);
                 byte[] bytes = obj.getBytes();
                 int len = bytes.length;
+
+                //If the current tuple can't be added in the buffer because of lack of space, the buffer has to be
+                //flushed to the disk and then the data has to be written into the buffer.
+                if(!(_bufferIndex + (len + 2) <= WRITEBUFFERSIZE))
+                {
+                    writeInParts();
+                }
 
                 //copy length of tuple in a two byte array
                 byte[] length = new byte[2];
@@ -267,25 +270,20 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                 _bufferIndex += bytes.length;
             }
 
-            if (flag == 1) {
+            if (flag == 1) {//If the tuple marks the Window end
                 writeInParts();
-                if(fc.position() == 0L)
+                if(fc.position() == 0L)//If the file writer pointer is in the 0th index, the previous window ended at the
+                //end of the file.
                 {
                     for (int i = 0; i < count; i++) {
                         _windowEndAddress.add(MAXFILESIZE - 1L);
                     }
                 }
                 else {
-
                     for (int i = 0; i < count; i++) {
                         _windowEndAddress.add(fc.position() - 1L);
                     }
                 }
-            }
-
-            if(_bufferIndex >= WRITEBUFFERSIZE*WRITEBUFFERTHRESHOLD) //If the buffer is 95% full
-            {
-                writeInParts();
             }
         }
         catch(IOException ex)
@@ -304,6 +302,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
 
         long remainingFileSpace = (MAXFILESIZE - fc.position());
         int bufferDataLength = _bufferIndex;
+        //If the data to be written can fit the space remaining and there is no wrap up required.
         if(bufferDataLength <= remainingFileSpace) {
             long temp = fc.position();
             _fileWriter.write(_writeBuffer, 0, _bufferIndex);
@@ -312,20 +311,26 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                 long temp1 = temp+(long)_bufferIndex;
                 fc.position(temp1);
             }
-            //When FileWriter reaches the MAXFILESIZE after bulk write, wrap up should happen
+            //When FileWriter reaches the MAXFILESIZE after bulk write, the file pointer should be moved to the
+            //beginning of the file.
             if(fc.position() == MAXFILESIZE)
                 _fileWriter.getChannel().position(0L);
         }
         else{
+            //Write the data which can fit at the end
             _fileWriter.write(_writeBuffer, 0, (int) remainingFileSpace);
+            //Move the pointer to the beginning of the file
             _fileWriter.getChannel().position(0L);
+            //Write the rest of the data in the beginning of the file.
             _fileWriter.write(_writeBuffer, (int)remainingFileSpace, bufferDataLength - (int)remainingFileSpace);
         }
+        //Reset the buffer index so that buffer will be filled from the beginning
         _bufferIndex = 0;
     }
 
     /**
-     * This function spawns all the threads needed for reading data from disk and also a thread that reads this data and send out to next process
+     * This function spawns all the threads needed for reading data from disk and also a thread that reads this
+     * data and send out to next process
      */
     private void Emitter() throws InterruptedException {
         _bufferList = new ArrayList<byte[]>();
@@ -367,7 +372,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
         }
 
         public void run(){
-            System.out.println("Disk to memory threads begin");
+            LOG.info("Disk to memory threads begin");
             while(true){
                 synchronized(_threadSequenceQueue) {
 
@@ -376,7 +381,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                         try {
                             _threadSequenceQueue.wait();
                         } catch (InterruptedException e) {
-                            // TODO Instead of throwing error. Put this to log statement
                             e.printStackTrace();
                         }
                     }
@@ -408,7 +412,8 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
 
                                 long tempPeek = _windowEndAddress.peek();
                                 // if the peek is ahead of the start offset
-                                //check if the endoffset is still ahead of the start offset and not at the top of file post wrapping
+                                //check if the end offset is still ahead of the start offset and not at the
+                                // top of file post wrapping
                                 if (tempPeek >= __start1) {
                                     //Difference between end of window and start offset should fit in buffer
                                     if ( tempPeek - __start1 + 1 <= READBUFFERSIZE) {
@@ -417,7 +422,8 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                         __isWrapLoadNeeded = false;
                                         startOffset = -1L;
                                         break;
-                                        //difference between end removed and start offset is greater than buffer capacity
+                                        //difference between end removed and start offset is greater
+                                        // than buffer capacity
                                     } else if(tempPeek - __start1 >= READBUFFERSIZE + 1L){
                                         __end1 = __start1 + READBUFFERSIZE - 1L;
                                         __sendEOWSignal = false;
@@ -427,9 +433,11 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                     }
 
                                 }
-                                //temppeek < start1;  start offset is at the bottom of the file whereas endoffst is at the beginning of the file
+                                //temppeek < start1;  start offset is at the bottom of the file whereas
+                                // endoffst is at the beginning of the file
                                 else {
-                                    // whole window data till the end of window beginning from startoffset fits in the buffer.
+                                    // whole window data till the end of window beginning from
+                                    // startoffset fits in the buffer.
                                     //Data is partly at the end of the file and partly on top
                                     if ((long)(MAXFILESIZE - __start1) + tempPeek + 1L <= READBUFFERSIZE) {
                                         __end1 = MAXFILESIZE - 1L;
@@ -439,7 +447,8 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                         __isWrapLoadNeeded = true;
                                         startOffset = -1L;
                                         break;
-                                    //data in file from startoffset till the end of file can fit in the buffersize, excluding end of window
+                                    //data in file from startoffset till the end of file can fit in the buffersize,
+                                    // excluding end of window
                                     } else if((long)(MAXFILESIZE - __start1) + tempPeek +1L >= READBUFFERSIZE +1) {
                                         if (MAXFILESIZE - __start1 >= READBUFFERSIZE) {
                                             __end1 = __start1 + READBUFFERSIZE - 1L;
@@ -448,7 +457,8 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                             startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
                                             break;
                                         }
-                                        // The data is too much for buffer and endof window cannot be stored. Store data till buffer is full.
+                                        // The data is too much for buffer and endof window cannot be stored.
+                                        // Store data till buffer is full.
                                         else {
                                             __end1 = MAXFILESIZE - 1L;
                                             __start2 = 0L;
@@ -473,8 +483,8 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                     startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
                                     break;
                                 //Check if there is enough data to fill the buffer and wrapping up is needed
-                                } else if(_windowEndAddress.isEmpty() && (long)(MAXFILESIZE - __start1 ) + tempFileWriter >= 1L + READBUFFERSIZE) {
-                                    //System.out.println("Here2");
+                                } else if(_windowEndAddress.isEmpty() && (long)(MAXFILESIZE - __start1 )
+                                        + tempFileWriter >= 1L + READBUFFERSIZE) {
                                     __end1 = MAXFILESIZE - 1L;
                                     __start2 = 0L;
                                     __end2 = READBUFFERSIZE - (MAXFILESIZE - __start1) - 1L;
@@ -486,7 +496,8 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                             }
                         }
                         //file writer is ahead of startoffset... Wrapping up logic not needed
-                        else if(tempFileWriter > __start1 + READBUFFERSIZE || !_windowEndAddress.isEmpty()){ //Before Wrapping Up //if(tempFileWriter > __start1)
+                        //Before Wrapping Up
+                        else if(tempFileWriter > __start1 + READBUFFERSIZE || !_windowEndAddress.isEmpty()){
                             //if end of window length address is present
                             if (!_windowEndAddress.isEmpty()) {
                                 long tempPeek = _windowEndAddress.peek();
@@ -530,7 +541,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                             if (__sendEOWSignal) {
                                 _bufferList.get(__threadSequence)[idx1 + idx2] = -1;
                                 _bufferList.get(__threadSequence)[idx1 + idx2 + 1] = -1;
-                                System.out.println("In 1:: -1 -1 is set in Buffer::" + __threadSequence);
                             } else {
                                 _bufferList.get(__threadSequence)[idx1 + idx2] = 0;
                                 _bufferList.get(__threadSequence)[idx1 + idx2 + 1] = 0;
@@ -575,7 +585,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
             }
             catch(Exception ex)
             {
-                System.out.println("Exception Caught with  length ::"+length + "with start ::" + s);
                 ex.printStackTrace();
             }
             return length;
@@ -597,7 +606,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
         }
 
         public void run(){
-            System.out.println("Emitter threads begin");
+            LOG.info("Emitter threads begin");
             while(_producerConsumerMap.get(__currentBuffer)==-1);
             while(true){
                 getLength();
@@ -636,10 +645,8 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
              */
             else if(__bufferIndex == READBUFFERSIZE - 1L)
             {
-                System.out.println("We are in the special case");
                 __ten = _bufferList.get(__currentBuffer)[__bufferIndex];
 
-                /*Special case*/
                 __unit = _bufferList.get(__currentBuffer)[__bufferIndex+1];
                 int len = getIntFromTwoBytes(__ten, __unit);
                 if(len == -1)
@@ -651,7 +658,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                 __currentBuffer++;
                 __currentBuffer = __currentBuffer%MAXTHREAD;
                 __bufferIndex = 0;
-                System.out.println("setting buff to 0 in special case buffer nuumber "+ __currentBuffer);
 
                 while(_producerConsumerMap.get(__currentBuffer)==-1);
 
@@ -660,21 +666,21 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
             }
             /*
             The bytes required to get the tuple length is beyond Buffersize mentioned in config file.
-            This two bytes will either have -1 or 0, nothing else. This case helps when the end of window exactly fits the buffer.
+            This two bytes will either have -1 or 0, nothing else. This case helps when the end of window
+            exactly fits the buffer.
              */
             else
             {
                 __ten = _bufferList.get(__currentBuffer)[__bufferIndex++];
                 __unit = _bufferList.get(__currentBuffer)[__bufferIndex];
-                // System.out.println("This is for -1 or 0 from buffer "+ __currentBuffer);
             }
             __length = getIntFromTwoBytes(__ten, __unit);
         }
 
         /**
          * This function is responsible for sending the tuples out to the subsequent process.
-         * It reads the __length variable and extract those many bytes from current buffer (from next buffer as well if required)
-         * and forms the tuple before sending out.
+         * It reads the __length variable and extract those many bytes from current buffer
+         * (from next buffer as well if required) and forms the tuple before sending out.
          */
         private void emitTuple()
         {
@@ -685,8 +691,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
             if(__length == 0)
             {
                 _producerConsumerMap.put(__currentBuffer, -1);
-                //System.out.println("No data in::"+__currentBuffer);
-                //System.out.println("setting buff to 0 in __length == 0 buffer nuumber "+ __currentBuffer);
                 __currentBuffer++;
                 __currentBuffer = __currentBuffer%MAXTHREAD;
                 while(_producerConsumerMap.get(__currentBuffer)==-1);
@@ -700,10 +704,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
             else if(__length == -1)
             {
                 _producerConsumerMap.put(__currentBuffer, -1);
-                //System.out.println("No data in::"+__currentBuffer);
                 sendEndOfWindowSignal();
-                //System.out.println("EOW sent from Buffer::"+ __currentBuffer);
-                //System.out.println("setting buff to 0 in __length == -1 in buffer nuumber "+ __currentBuffer);
                 __currentBuffer++;
                 __currentBuffer = __currentBuffer%MAXTHREAD;
                 while(_producerConsumerMap.get(__currentBuffer)==-1);
@@ -720,11 +721,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                 System.arraycopy(_bufferList.get(__currentBuffer),__bufferIndex,tempArray,0, __length);
                 String tupleData = new String(tempArray);
                 _collector.emit("dataStream", new Values(tupleData));
-                // System.out.println("Thiis normal:: Reading from current buffer "+ __currentBuffer +" and from index "+ __bufferIndex + " having length "+ __length);
-
                 __bufferIndex = __bufferIndex + __length;
-
-//                System.out.println("The new bufferindex "+ __bufferIndex);
                 return;
             }
             /*
@@ -733,28 +730,21 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
             else {
                 byte[] tempArray = new byte[__length];
                 int partLength = READBUFFERSIZE - __bufferIndex;
-                System.arraycopy(_bufferList.get(__currentBuffer),__bufferIndex,tempArray,0, partLength);
-                //System.out.println("Switching from " + __currentBuffer + " to "+ (__currentBuffer+1)%MAXTHREAD);
-                //System.out.println("Buffer Index of Incomplete tuple ::"+ _bufferIndex + " Tuple is of length::" + __length + " Amount read from this buffer is::" + partLength);
+                System.arraycopy(_bufferList.get(__currentBuffer), __bufferIndex, tempArray,0, partLength);
                 _producerConsumerMap.put(__currentBuffer, -1);
-                //System.out.println("No data in::"+__currentBuffer);
                 __currentBuffer++;
                 __currentBuffer = __currentBuffer%MAXTHREAD;
 
                 while(_producerConsumerMap.get(__currentBuffer)==-1);
 
                 __bufferIndex =0;
-                //System.out.println("setting buff to 0 in __length == wrap up tuple length buffer nuumber "+ __currentBuffer);
                 __length = __length - partLength;
-                System.arraycopy(_bufferList.get(__currentBuffer),__bufferIndex,tempArray,partLength, __length);
-                //System.out.println("Remaining bytes read from this buffer::"+ __length + " from" + __currentBuffer);
+                System.arraycopy(_bufferList.get(__currentBuffer), __bufferIndex, tempArray, partLength, __length);
                 String tupleData = new String(tempArray);
                 _collector.emit("dataStream", new Values(tupleData));
                 __bufferIndex = __bufferIndex + __length;
-                //System.out.println("New buffer Index :: " + __bufferIndex);
                 return;
             }
         }
     }
 }
-

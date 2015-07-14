@@ -1,6 +1,5 @@
 package storm.starter.bolt;
 
-import backtype.storm.task.OutputCollector;
 import backtype.storm.tuple.Tuple;
 import org.apache.log4j.Logger;
 import storm.starter.HelperClasses.WindowObject;
@@ -13,11 +12,9 @@ import storm.starter.Interfaces.IWindowBolt;
 
 public class LandmarkWindowBolt extends BaseWindowBolt implements IWindowBolt{
     final static Logger LOG = Logger.getLogger(LandmarkWindowBolt.class.getName());
-    OutputCollector _collector;
     long windowStart; //Variable which keeps track of the window start
     long windowEnd; //Variable which keeps track of the window end
     long tupleCount; //Variable to keep track of the tuple count for time based window
-    boolean isExecutedOnce = false; //Boolean which controls thread spawning
     boolean isTimeBased = false;
     int slideBy;//Variable used to indicate when the window start has to be slided
     long wLength;
@@ -93,7 +90,11 @@ public class LandmarkWindowBolt extends BaseWindowBolt implements IWindowBolt{
         }
     }
 
-
+    /**
+     * This function should be implemented by the bolts which has to detect the Mock Tuples sent by the Common Window Framework
+     * @param tuple The tuple which is received by this bolt
+     * @return Whether the tuple received is a mock tuple or not
+     */
     public boolean isMockTick(Tuple tuple){
         return true;
     }

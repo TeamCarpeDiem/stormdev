@@ -384,26 +384,31 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                     //wait till the buffer current thread is  trying to write to is read completely
                     while (_producerConsumerMap.get(__threadSequence) == 1) ;
 
+                    //If start offset is -1L then remove start address from the queue to start with a new window
                     if (startOffset == -1L) {
                         while (_windowStartAddress.isEmpty()) ;
                         startOffset = _windowStartAddress.remove();
                     }
                     __start1 = startOffset;
-                    // try {
+
                     long tempFileWriter = 0;
+                    //Iterate till one of the if condition is satisfied and then break out of the loop
                     while (true) {
                         try {
                             tempFileWriter = _fileWriter.getChannel().position();
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        if (tempFileWriter < __start1) { //After Wrapping Up
+                        //After Wrapping Up: file is being written from the top
+                        // whereas the emitter is emitting from the bottom of the fule
+                        if (tempFileWriter < __start1) {
 
                             //If end address is present
                             if (!_windowEndAddress.isEmpty()) {
 
                                 long tempPeek = _windowEndAddress.peek();
                                 // if the peek is ahead of the start offset
+                                //check if the endoffset is still ahead of the start offset and not at the top of file post wrapping
                                 if (tempPeek >= __start1) {
                                     //Difference between end of window and start offset should fit in buffer
                                     if ( tempPeek - __start1 + 1 <= READBUFFERSIZE) {
@@ -422,8 +427,10 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                     }
 
                                 }
-                                //temppeek < start1
+                                //temppeek < start1;  start offset is at the bottom of the file whereas endoffst is at the beginning of the file
                                 else {
+                                    // whole window data till the end of window beginning from startoffset fits in the buffer.
+                                    //Data is partly at the end of the file and partly on top
                                     if ((long)(MAXFILESIZE - __start1) + tempPeek + 1L <= READBUFFERSIZE) {
                                         __end1 = MAXFILESIZE - 1L;
                                         __start2 = 0L;
@@ -432,6 +439,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                         __isWrapLoadNeeded = true;
                                         startOffset = -1L;
                                         break;
+                                    //data in file from startoffset till the end of file can fit in the buffersize, excluding end of window
                                     } else if((long)(MAXFILESIZE - __start1) + tempPeek +1L >= READBUFFERSIZE +1) {
                                         if (MAXFILESIZE - __start1 >= READBUFFERSIZE) {
                                             __end1 = __start1 + READBUFFERSIZE - 1L;
@@ -439,7 +447,9 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                             __isWrapLoadNeeded = false;
                                             startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
                                             break;
-                                        } else {
+                                        }
+                                        // The data is too much for buffer and endof window cannot be stored. Store data till buffer is full.
+                                        else {
                                             __end1 = MAXFILESIZE - 1L;
                                             __start2 = 0L;
                                             __end2 = READBUFFERSIZE - (MAXFILESIZE - __start1) - 1L;
@@ -454,6 +464,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                             }
                             //The window address is not present
                             else {
+                                //Check if there is enough data to fill the buffer and wrapping up is not needed
                                 if (_windowEndAddress.isEmpty() &&
                                         MAXFILESIZE - __start1 > READBUFFERSIZE) {
                                     __end1 = __start1 + READBUFFERSIZE - 1L;
@@ -461,6 +472,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                     __isWrapLoadNeeded = false;
                                     startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
                                     break;
+                                //Check if there is enough data to fill the buffer and wrapping up is needed
                                 } else if(_windowEndAddress.isEmpty() && (long)(MAXFILESIZE - __start1 ) + tempFileWriter >= 1L + READBUFFERSIZE) {
                                     //System.out.println("Here2");
                                     __end1 = MAXFILESIZE - 1L;
@@ -472,26 +484,31 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                     break;
                                 }
                             }
-
-
-                        } else if(tempFileWriter > __start1 + READBUFFERSIZE || !_windowEndAddress.isEmpty()){ //Before Wrapping Up //if(tempFileWriter > __start1)
+                        }
+                        //file writer is ahead of startoffset... Wrapping up logic not needed
+                        else if(tempFileWriter > __start1 + READBUFFERSIZE || !_windowEndAddress.isEmpty()){ //Before Wrapping Up //if(tempFileWriter > __start1)
+                            //if end of window length address is present
                             if (!_windowEndAddress.isEmpty()) {
                                 long tempPeek = _windowEndAddress.peek();
+                                //Check if all the data from startoffset till end of window length can fit in buffer
                                 if (tempPeek > __start1 && tempPeek - __start1 + 1 <= READBUFFERSIZE) {
                                     __end1 = _windowEndAddress.remove();
                                     __sendEOWSignal = true;
                                     __isWrapLoadNeeded = false;
                                     startOffset = -1L;
                                     break;
-                                } else if(tempPeek > __start1 && tempPeek - __start1 + 1 >= READBUFFERSIZE+1L) {
+                                }
+                                //  Window end is present but the data is too much for a buffer
+                                else if(tempPeek > __start1 && tempPeek - __start1 + 1 >= READBUFFERSIZE+1L) {
                                     __end1 = __start1 + READBUFFERSIZE - 1L;
                                     __sendEOWSignal = false;
                                     __isWrapLoadNeeded = false;
                                     startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
                                     break;
                                 }
-
-                            } else if (tempFileWriter - __start1 >= READBUFFERSIZE+1) {
+                            }
+                            //End of window is not present but enough data to load a buffer
+                            else if (tempFileWriter - __start1 >= READBUFFERSIZE+1) {
                                 __end1 = __start1 + READBUFFERSIZE - 1L;
                                 __sendEOWSignal = false;
                                 __isWrapLoadNeeded = false;

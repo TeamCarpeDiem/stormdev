@@ -15,6 +15,7 @@ import storm.starter.HelperClasses.WindowObject;
 import storm.starter.Interfaces.IBaseWindowBolt;
 
 import java.io.*;
+import java.nio.channels.FileChannel;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -48,7 +49,8 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     protected BlockingQueue<Long> _windowEndAddress;
     byte[] _writeBuffer; //Buffer which is used to perform bulk write to the disk
     int _bufferIndex;
-    RandomAccessFile _fileWriter; //File to which contents will be written
+    //RandomAccessFile _fileWriter; //File to which contents will be written
+    FileOutputStream _fileWriter;
     int secondCount; //TODO Remove before releasing final code
 
     /********************* Updated while reading data from disk to memory  **********************/
@@ -113,7 +115,8 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     public void prepare(Map conf, TopologyContext context, OutputCollector collector)
     {
         try {
-            _fileWriter = new RandomAccessFile(FILEPATH,"rws");
+            System.out.println("Path is::" + FILEPATH);
+            _fileWriter = new FileOutputStream(FILEPATH);
             _fileReader = new RandomAccessFile(FILEPATH,"r");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -148,7 +151,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
 
     protected void sendEndOfWindowSignal() //OutputCollector collector
     {
-        _collector.emit("mockTickTuple",new Values("__MOCKTICKTUPLE__"));
+        _collector.emit("mockTickTuple", new Values("__MOCKTICKTUPLE__"));
     }
 
     //@Override
@@ -206,21 +209,22 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     //@Override
     public void storeTuple(Tuple tuple, int flag, int count)
     {
+        FileChannel fc = _fileWriter.getChannel();
         try {
 
             //TODO Catching Up part
-            if(!_windowStartAddress.isEmpty() && (long)_fileWriter.getFilePointer()  < (long)_windowStartAddress.peek()
-                    && (((long)_windowStartAddress.peek() - (long)_fileWriter.getFilePointer() ) < (long)READBUFFERSIZE))
+            if(!_windowStartAddress.isEmpty() && fc.position()  < (long)_windowStartAddress.peek()
+                    && (((long)_windowStartAddress.peek() - fc.position() ) < (long)READBUFFERSIZE))
             {
-                System.out.println("Writer catching up  on Reader..  Start Address::"+ _windowStartAddress.peek() + "File Writer:"+_fileWriter.getFilePointer());
+                System.out.println("Writer catching up  on Reader..  Start Address::"+ _windowStartAddress.peek());
                 Utils.sleep(10000);
             }
 
             if (flag == 0) {
                 writeInParts();
                 for (int i = 0; i < count; i++) {
-                    _windowStartAddress.add(_fileWriter.getFilePointer());
-                    System.out.println("Start address added in the queue: "+ _fileWriter.getFilePointer());
+                    _windowStartAddress.add(fc.position());
+                    System.out.println("Start address added in the queue: "+ fc.position());
                 }
             }
 
@@ -246,18 +250,18 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
 
             if (flag == 1) {
                 writeInParts();
-                if((long)_fileWriter.getFilePointer() == 0L)
+                if(fc.position() == 0L)
                 {
                     for (int i = 0; i < count; i++) {
-                        System.out.println("End Address Added to the queue::"+(_fileWriter.getFilePointer()));
+                        System.out.println("End Address Added to the queue::"+fc.position());
                         _windowEndAddress.add(MAXFILESIZE - 1L);
                     }
                 }
                 else {
 
                     for (int i = 0; i < count; i++) {
-                        System.out.println("End Address Added to the queue::"+(_fileWriter.getFilePointer()));
-                        _windowEndAddress.add(_fileWriter.getFilePointer() - 1L);
+                        System.out.println("End Address Added to the queue::"+ fc.position());
+                        _windowEndAddress.add(fc.position() - 1L);
                     }
                 }
             }
@@ -279,20 +283,29 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
      */
     private void writeInParts() throws IOException
     {
-        long remainingFileSpace = (MAXFILESIZE - _fileWriter.getFilePointer());
+        FileChannel fc = (_fileWriter.getChannel());
+
+        long remainingFileSpace = (MAXFILESIZE - fc.position());
         int bufferDataLength = _bufferIndex;
         if(bufferDataLength <= remainingFileSpace) {
-            long temp = _fileWriter.getFilePointer();
-            _fileWriter.write(_writeBuffer, 0, bufferDataLength);
-            if(_fileWriter.getFilePointer() == temp && _bufferIndex != 0)
-                System.out.println("######## DATA NOT WRITTEN TO FILE####");
+            long temp = fc.position();
+            System.out.println("Before Pointer::" + fc.position() + "   Index::" + _bufferIndex);
+            _fileWriter.write(_writeBuffer, 0, _bufferIndex);
+            System.out.println("After Pointer::" + fc.position() + "   Index::" + _bufferIndex);
+
+            if(fc.position() == temp && _bufferIndex != 0) {
+                System.out.println("Changing writer to " + temp + "  +  " + _bufferIndex);
+                long temp1 = temp+(long)_bufferIndex;
+                fc.position(temp1);
+                System.out.println("######## DATA NOT WRITTEN TO FILE#### :: "+ fc.position() + "    Temp1::"+temp1);
+            }
             //When FileWriter reaches the MAXFILESIZE after bulk write, wrap up should happen
-            if((long)_fileWriter.getFilePointer() == MAXFILESIZE)
-                _fileWriter.seek(0L);
+            if(fc.position() == MAXFILESIZE)
+                _fileWriter.getChannel().position(0L);
         }
-        else {
-            _fileWriter.write(_writeBuffer, 0, (int)remainingFileSpace);
-            _fileWriter.seek(0L);
+        else{
+            _fileWriter.write(_writeBuffer, 0, (int) remainingFileSpace);
+            _fileWriter.getChannel().position(0L);
             _fileWriter.write(_writeBuffer, (int)remainingFileSpace, bufferDataLength - (int)remainingFileSpace);
         }
         _bufferIndex = 0;
@@ -363,137 +376,141 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                         System.out.println("Start Address removed::" + startOffset);
                     }
                     __start1 = startOffset;
-                    try {
-                        long tempFileWriter;
-                        while (true) {
-                            tempFileWriter = _fileWriter.getFilePointer();
-                            //System.out.println("Filewriter:: "+ tempFileWriter + " start 1::" + __start1);
-                            if (tempFileWriter < __start1) { //After Wrapping Up
+                    // try {
+                    long tempFileWriter = 0;
+                    while (true) {
+                        try {
+                            tempFileWriter = _fileWriter.getChannel().position();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        if (tempFileWriter < __start1) { //After Wrapping Up
 
-                                //If end address is present
-                                if (!_windowEndAddress.isEmpty()) {
+                            //If end address is present
+                            if (!_windowEndAddress.isEmpty()) {
 
-                                    long tempPeek = _windowEndAddress.peek();
-                                    // if the peek is ahead of the start offset
-                                    if (tempPeek >= __start1) {
-                                        //Difference between end of window and start offset should fit in buffer
-                                        if ( tempPeek - __start1 + 1 <= READBUFFERSIZE) {
-                                            __end1 = _windowEndAddress.remove();
-                                            //System.out.println("End address removed from temppeek > start1" + __end1);
-                                            System.out.println("1 :: End Address removed::" + (__end1+1));
-                                            __sendEOWSignal = true;
-                                            __isWrapLoadNeeded = false;
-                                            startOffset = -1L;
-                                            break;
-                                            //difference between end removed and start offset is greater than buffer capacity
-                                        } else if(tempPeek - __start1 >= READBUFFERSIZE + 1L){
-                                            __end1 = __start1 + READBUFFERSIZE - 1L;
-                                            __sendEOWSignal = false;
-                                            __isWrapLoadNeeded = false;
-                                            System.out.println("1.1 :: End Address removed::" + (__end1+1));
-                                            startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
-                                            break;
-                                        }
-
-                                    }
-                                    //temppeek < start1
-                                    else {
-                                        if ((long)(MAXFILESIZE - __start1) + tempPeek + 1L <= READBUFFERSIZE) {
-                                            __end1 = MAXFILESIZE - 1L;
-                                            __start2 = 0L;
-                                            __end2 = _windowEndAddress.remove();
-                                            System.out.println("2 :: End Address removed::" + (__end2+1));
-                                            __sendEOWSignal = true;
-                                            __isWrapLoadNeeded = true;
-                                            startOffset = -1L;
-                                            break;
-                                        } else if((long)(MAXFILESIZE - __start1) + tempPeek +1L >= READBUFFERSIZE +1) {
-                                            if (MAXFILESIZE - __start1 >= READBUFFERSIZE) {
-                                                __end1 = __start1 + READBUFFERSIZE - 1L;
-                                                __sendEOWSignal = false;
-                                                __isWrapLoadNeeded = false;
-                                                startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
-                                                System.out.println("2.2 :: End Address removed::" + (__end1+1));
-                                                break;
-                                            } else {
-                                                __end1 = MAXFILESIZE - 1L;
-                                                __start2 = 0L;
-                                                __end2 = READBUFFERSIZE - (MAXFILESIZE - __start1) - 1L;
-                                                System.out.println("****** start1 "+ __start1 + " end1:: "+ __end1 +" start2:: " + __start2 + "  end2:: "+ __end2);
-                                                System.out.println("****** end offset ::" + tempPeek);
-                                                __sendEOWSignal = false;
-                                                __isWrapLoadNeeded = true;
-                                                System.out.println("2.3 :: End Address removed::" + (__end1+1));
-                                                startOffset = (__end2 + 1L) % MAXFILESIZE;
-                                                break;
-                                            }
-                                        }
-
-                                    }
-                                }
-                                //The window address is not present
-                                else {
-                                    if (_windowEndAddress.isEmpty() &&
-                                            MAXFILESIZE - __start1 > READBUFFERSIZE) {
-                                        //System.out.println("Here1");
-                                        __end1 = __start1 + READBUFFERSIZE - 1L;
-                                        __sendEOWSignal = false;
-                                        __isWrapLoadNeeded = false;
-                                        System.out.println("0.1 :: End Address removed::" + (__end1+1));
-                                        startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
-                                        break;
-                                    } else if(_windowEndAddress.isEmpty() && (long)(MAXFILESIZE - __start1 ) + tempFileWriter >= 1L + READBUFFERSIZE) {
-                                        //System.out.println("Here2");
-                                        __end1 = MAXFILESIZE - 1L;
-                                        __start2 = 0L;
-                                        __end2 = READBUFFERSIZE - (MAXFILESIZE - __start1) - 1L;
-                                        __sendEOWSignal = false;
-                                        __isWrapLoadNeeded = true;
-                                        startOffset = (__end2 + 1L) % MAXFILESIZE;
-                                        System.out.println("0.2 :: End Address removed::" + (__end1+1));
-                                        System.out.println("@@@@@@ start1 "+ __start1 + " end1:: "+ __end1 +" start2:: " + __start2 + "  end2:: "+ __end2);
-                                        System.out.println("@@@@@@ end offset ::" + _windowEndAddress.peek());
-                                        break;
-                                    }
-                                }
-
-
-                            } else if(tempFileWriter > __start1 + READBUFFERSIZE || !_windowEndAddress.isEmpty()){ //Before Wrapping Up //if(tempFileWriter > __start1)
-                                if (!_windowEndAddress.isEmpty()) {
-                                    long tempPeek = _windowEndAddress.peek();
-                                    if (tempPeek > __start1 && tempPeek - __start1 + 1 <= READBUFFERSIZE) {
+                                long tempPeek = _windowEndAddress.peek();
+                                // if the peek is ahead of the start offset
+                                if (tempPeek >= __start1) {
+                                    //Difference between end of window and start offset should fit in buffer
+                                    if ( tempPeek - __start1 + 1 <= READBUFFERSIZE) {
                                         __end1 = _windowEndAddress.remove();
-                                        //System.out.println("3 :: file writer pointer::" + tempFileWriter);
-                                        System.out.println("3 :: End Address removed::" + (__end1+1));
+                                        //System.out.println("End address removed from temppeek > start1" + __end1);
+                                        System.out.println("1 :: End Address removed::" + (__end1+1));
                                         __sendEOWSignal = true;
                                         __isWrapLoadNeeded = false;
                                         startOffset = -1L;
                                         break;
-                                    } else if(tempPeek > __start1 && tempPeek - __start1 + 1 >= READBUFFERSIZE+1L) {
+                                        //difference between end removed and start offset is greater than buffer capacity
+                                    } else if(tempPeek - __start1 >= READBUFFERSIZE + 1L){
                                         __end1 = __start1 + READBUFFERSIZE - 1L;
                                         __sendEOWSignal = false;
                                         __isWrapLoadNeeded = false;
-                                        System.out.println("3.1 :: End Address removed::" + (__end1+1));
+                                        System.out.println("1.1 :: End Address removed::" + (__end1+1));
                                         startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
                                         break;
                                     }
 
-                                } else if (tempFileWriter - __start1 >= READBUFFERSIZE+1) {
+                                }
+                                //temppeek < start1
+                                else {
+                                    if ((long)(MAXFILESIZE - __start1) + tempPeek + 1L <= READBUFFERSIZE) {
+                                        __end1 = MAXFILESIZE - 1L;
+                                        __start2 = 0L;
+                                        __end2 = _windowEndAddress.remove();
+                                        System.out.println("2 :: End Address removed::" + (__end2+1));
+                                        __sendEOWSignal = true;
+                                        __isWrapLoadNeeded = true;
+                                        startOffset = -1L;
+                                        break;
+                                    } else if((long)(MAXFILESIZE - __start1) + tempPeek +1L >= READBUFFERSIZE +1) {
+                                        if (MAXFILESIZE - __start1 >= READBUFFERSIZE) {
+                                            __end1 = __start1 + READBUFFERSIZE - 1L;
+                                            __sendEOWSignal = false;
+                                            __isWrapLoadNeeded = false;
+                                            startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
+                                            System.out.println("2.2 :: End Address removed::" + (__end1+1));
+                                            break;
+                                        } else {
+                                            __end1 = MAXFILESIZE - 1L;
+                                            __start2 = 0L;
+                                            __end2 = READBUFFERSIZE - (MAXFILESIZE - __start1) - 1L;
+                                            System.out.println("****** start1 "+ __start1 + " end1:: "+ __end1 +" start2:: " + __start2 + "  end2:: "+ __end2);
+                                            System.out.println("****** end offset ::" + tempPeek);
+                                            __sendEOWSignal = false;
+                                            __isWrapLoadNeeded = true;
+                                            System.out.println("2.3 :: End Address removed::" + (__end1+1));
+                                            startOffset = (__end2 + 1L) % MAXFILESIZE;
+                                            break;
+                                        }
+                                    }
+
+                                }
+                            }
+                            //The window address is not present
+                            else {
+                                if (_windowEndAddress.isEmpty() &&
+                                        MAXFILESIZE - __start1 > READBUFFERSIZE) {
+                                    //System.out.println("Here1");
                                     __end1 = __start1 + READBUFFERSIZE - 1L;
                                     __sendEOWSignal = false;
                                     __isWrapLoadNeeded = false;
-                                    System.out.println("3.2 :: End Address removed::" + (__end1+1));
+                                    System.out.println("0.1 :: End Address removed::" + (__end1+1));
+                                    startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
+                                    break;
+                                } else if(_windowEndAddress.isEmpty() && (long)(MAXFILESIZE - __start1 ) + tempFileWriter >= 1L + READBUFFERSIZE) {
+                                    //System.out.println("Here2");
+                                    __end1 = MAXFILESIZE - 1L;
+                                    __start2 = 0L;
+                                    __end2 = READBUFFERSIZE - (MAXFILESIZE - __start1) - 1L;
+                                    __sendEOWSignal = false;
+                                    __isWrapLoadNeeded = true;
+                                    startOffset = (__end2 + 1L) % MAXFILESIZE;
+                                    System.out.println("0.2 :: End Address removed::" + (__end1+1));
+                                    System.out.println("@@@@@@ start1 "+ __start1 + " end1:: "+ __end1 +" start2:: " + __start2 + "  end2:: "+ __end2);
+                                    System.out.println("@@@@@@ end offset ::" + _windowEndAddress.peek());
+                                    break;
+                                }
+                            }
+
+
+                        } else if(tempFileWriter > __start1 + READBUFFERSIZE || !_windowEndAddress.isEmpty()){ //Before Wrapping Up //if(tempFileWriter > __start1)
+                            if (!_windowEndAddress.isEmpty()) {
+                                long tempPeek = _windowEndAddress.peek();
+                                if (tempPeek > __start1 && tempPeek - __start1 + 1 <= READBUFFERSIZE) {
+                                    __end1 = _windowEndAddress.remove();
+                                    //System.out.println("3 :: file writer pointer::" + tempFileWriter);
+                                    System.out.println("3 :: End Address removed::" + (__end1+1));
+                                    __sendEOWSignal = true;
+                                    __isWrapLoadNeeded = false;
+                                    startOffset = -1L;
+                                    break;
+                                } else if(tempPeek > __start1 && tempPeek - __start1 + 1 >= READBUFFERSIZE+1L) {
+                                    __end1 = __start1 + READBUFFERSIZE - 1L;
+                                    __sendEOWSignal = false;
+                                    __isWrapLoadNeeded = false;
+                                    System.out.println("3.1 :: End Address removed::" + (__end1+1));
                                     startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
                                     break;
                                 }
 
+                            } else if (tempFileWriter - __start1 >= READBUFFERSIZE+1) {
+                                __end1 = __start1 + READBUFFERSIZE - 1L;
+                                __sendEOWSignal = false;
+                                __isWrapLoadNeeded = false;
+                                System.out.println("3.2 :: End Address removed::" + (__end1+1));
+                                startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
+                                break;
                             }
-                        }
 
-                    } catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
+                        }
                     }
+
+                    //  } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    //
+                    //    e.printStackTrace();
+                    //}
 
                     int threadnum = _threadSequenceQueue.remove();
                     _threadSequenceQueue.add(threadnum);

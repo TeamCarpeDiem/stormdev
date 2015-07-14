@@ -66,6 +66,8 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     /****************************** Testing variable *****************************///TODO to be removed
     int tLength;
 
+
+    /****************************** Constructor *****************************/
     public BaseWindowBolt(WindowObject wObj)
     {
         LOG.info("Created Sliding Window");
@@ -126,6 +128,11 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
         }
     }
 
+    /**
+     * This function is called by STORM when it has to send tuple to any bolt.
+     * The framework will receive the tuple and then will send it to the class extending the framework
+     * @param tuple
+     */
     public void execute(Tuple tuple)
     {
         delegateExecute(tuple);
@@ -140,18 +147,31 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
 
     }
 
-    //@Override
+    /**
+     * THis function takes in a Tuple object and should check if that tuple is a tick tuple or not
+     * @param tuple
+     * @return boolean value
+     */
     public boolean isTickTuple(Tuple tuple) {
         return tuple.getSourceComponent().equals(Constants.SYSTEM_COMPONENT_ID)
                 && tuple.getSourceStreamId().equals(Constants.SYSTEM_TICK_STREAM_ID);
     }
 
-    protected void sendEndOfWindowSignal() //OutputCollector collector
+    /**
+     * This function is called at the end of each window to mark the end of the end of windowing signal.
+     * The mock tuple sent out is understood by all other process expecting window data
+     */
+    private void sendEndOfWindowSignal() //OutputCollector collector
     {
         _collector.emit("mockTickTuple",new Values("__MOCKTICKTUPLE__"));
     }
 
-    //@Override
+    /**
+     * The initiateEmitter class takes a basecollector as a parameter from the class which receives the tuple.
+     * If the collector is not from the class that receives the tuple then it will cause null pointer exception.
+     * The OutputCollector's object taken as a parameter should be used to emit tuple from the base class
+     * @param
+     */
     public void initiateEmitter() throws InterruptedException {
         Emitter();
     }
@@ -198,7 +218,9 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     }
 
     /**
-     *
+     * The initiateEmitter class takes a basecollector as a parameter from the class which receives the tuple.
+     * If the collector is not from the class that receives the tuple then it will cause null pointer exception.
+     * The OutputCollector's object taken as a parameter should be used to emit tuple from the base class
      * @param tuple
      * @param flag
      * @param count
@@ -274,7 +296,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     }
 
     /**
-     *
+     * Write the data to the disk. If end of file is reached then start writing from the beginning.
      * @throws IOException
      */
     private void writeInParts() throws IOException
@@ -299,7 +321,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     }
 
     /**
-     *
+     * This function spawns all the threads needed for reading data from disk and also a thread that reads this data and send out to next process
      */
     private void Emitter() throws InterruptedException {
         _bufferList = new ArrayList<byte[]>();
@@ -355,6 +377,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                         }
                     }
 
+                    //wait till the buffer current thread is  trying to write to is read completely
                     while (_producerConsumerMap.get(__threadSequence) == 1) ;
 
                     if (startOffset == -1L) {
@@ -539,6 +562,15 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
             }
         }
 
+        /**
+         * Receive start and end offest of the file from where data needs to be read.
+         * The index variable marks the point in current buffer from where the data needs to be stored in the buffer
+         * @param s
+         * @param e
+         * @param index
+         * @return Index of buffer where next byte can  be added
+         * @throws IOException
+         */
         private int loadBuffer(long s, long e, int index) throws IOException {
             _fileReader.seek(s);
 
@@ -582,18 +614,35 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
             }
 
         }
+
+        /**
+         * Receives two byte and convert them to short int before sending
+         * @param tens
+         * @param units
+         * @return
+         */
         private int getIntFromTwoBytes(byte tens, byte units){
             return (short)((tens & 0xFF) << 8) | ((int)units & 0xFF);
         }
 
+        /**This function reads two bytes from current buffer(from current and next buffer if required)
+         * and assign the int value stored in those bytes to __length, the __length will have 0, -1 or any other
+         * positive value lesser than 32,000 (Max size of tuple supported)
+         */
         private void getLength()
         {
+            /*
+            Bytes required to get the length are present within the buffersize as per config
+             */
             if(__bufferIndex < READBUFFERSIZE - 1L)
             {
                 __ten = _bufferList.get(__currentBuffer)[__bufferIndex++];
                 __unit = _bufferList.get(__currentBuffer)[__bufferIndex++];
 
             }
+            /*
+            The bytes required to read the length are present across two buffer
+             */
             else if(__bufferIndex == READBUFFERSIZE - 1L)
             {
                 System.out.println("We are in the special case");
@@ -618,6 +667,10 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                 __unit = _bufferList.get(__currentBuffer)[__bufferIndex++];
 
             }
+            /*
+            The bytes required to get the tuple length is beyond Buffersize mentioned in config file.
+            This two bytes will either have -1 or 0, nothing else. This case helps when the end of window exactly fits the buffer.
+             */
             else
             {
                 __ten = _bufferList.get(__currentBuffer)[__bufferIndex++];
@@ -627,8 +680,17 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
             __length = getIntFromTwoBytes(__ten, __unit);
         }
 
+        /**
+         * This function is responsible for sending the tuples out to the subsequent process.
+         * It reads the __length variable and extract those many bytes from current buffer (from next buffer as well if required)
+         * and forms the tuple before sending out.
+         */
         private void emitTuple()
         {
+            /*if length is zero, this means the buffer was complete filled
+            and has been read completely without sending any end of window signal.
+            Mark this buffer as read and go to the beginning of next buffer
+            */
             if(__length == 0)
             {
                 _producerConsumerMap.put(__currentBuffer, -1);
@@ -640,6 +702,10 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                 __bufferIndex =0;
                 return;
             }
+            /*if length is -1, this means the buffer had an end of window length.
+            Buffer has been read completely and end of window signal. needs to be sent.
+            Mark this buffer as read and go to the beginning of next buffer
+            */
             else if(__length == -1)
             {
                 _producerConsumerMap.put(__currentBuffer, -1);
@@ -654,6 +720,9 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
 
                 return;
             }
+            /*
+            The length of bytes required to form a tuple is present within same buffer
+             */
             else if(__bufferIndex + __length <= READBUFFERSIZE)
             {
                 byte[] tempArray = new byte[__length];
@@ -667,6 +736,9 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
 //                System.out.println("The new bufferindex "+ __bufferIndex);
                 return;
             }
+            /*
+            he length of bytes required to form a tuple is present across multiple buffer
+             */
             else {
                 byte[] tempArray = new byte[__length];
                 int partLength = READBUFFERSIZE - __bufferIndex;

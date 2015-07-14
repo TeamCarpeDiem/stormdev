@@ -72,7 +72,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     /****************************** Constructor *****************************/
     public BaseWindowBolt(WindowObject wObj)
     {
-        LOG.info("Created Sliding Window");
         Properties prop = new Properties();
         InputStream input = null;
         try {
@@ -117,7 +116,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     public void prepare(Map conf, TopologyContext context, OutputCollector collector)
     {
         try {
-            System.out.println("Path is::" + FILEPATH);
             _fileWriter = new FileOutputStream(FILEPATH);
             _fileReader = new RandomAccessFile(FILEPATH,"r");
         } catch (FileNotFoundException e) {
@@ -246,7 +244,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                 writeInParts();
                 for (int i = 0; i < count; i++) {
                     _windowStartAddress.add(fc.position());
-                    System.out.println("Start address added in the queue: "+ fc.position());
                 }
             }
 
@@ -275,14 +272,12 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                 if(fc.position() == 0L)
                 {
                     for (int i = 0; i < count; i++) {
-                        System.out.println("End Address Added to the queue::"+fc.position());
                         _windowEndAddress.add(MAXFILESIZE - 1L);
                     }
                 }
                 else {
 
                     for (int i = 0; i < count; i++) {
-                        System.out.println("End Address Added to the queue::"+ fc.position());
                         _windowEndAddress.add(fc.position() - 1L);
                     }
                 }
@@ -311,15 +306,11 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
         int bufferDataLength = _bufferIndex;
         if(bufferDataLength <= remainingFileSpace) {
             long temp = fc.position();
-            System.out.println("Before Pointer::" + fc.position() + "   Index::" + _bufferIndex);
             _fileWriter.write(_writeBuffer, 0, _bufferIndex);
-            System.out.println("After Pointer::" + fc.position() + "   Index::" + _bufferIndex);
 
             if(fc.position() == temp && _bufferIndex != 0) {
-                System.out.println("Changing writer to " + temp + "  +  " + _bufferIndex);
                 long temp1 = temp+(long)_bufferIndex;
                 fc.position(temp1);
-                System.out.println("######## DATA NOT WRITTEN TO FILE#### :: "+ fc.position() + "    Temp1::"+temp1);
             }
             //When FileWriter reaches the MAXFILESIZE after bulk write, wrap up should happen
             if(fc.position() == MAXFILESIZE)
@@ -396,7 +387,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                     if (startOffset == -1L) {
                         while (_windowStartAddress.isEmpty()) ;
                         startOffset = _windowStartAddress.remove();
-                        System.out.println("Start Address removed::" + startOffset);
                     }
                     __start1 = startOffset;
                     // try {
@@ -418,8 +408,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                     //Difference between end of window and start offset should fit in buffer
                                     if ( tempPeek - __start1 + 1 <= READBUFFERSIZE) {
                                         __end1 = _windowEndAddress.remove();
-                                        //System.out.println("End address removed from temppeek > start1" + __end1);
-                                        System.out.println("1 :: End Address removed::" + (__end1+1));
                                         __sendEOWSignal = true;
                                         __isWrapLoadNeeded = false;
                                         startOffset = -1L;
@@ -429,7 +417,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                         __end1 = __start1 + READBUFFERSIZE - 1L;
                                         __sendEOWSignal = false;
                                         __isWrapLoadNeeded = false;
-                                        System.out.println("1.1 :: End Address removed::" + (__end1+1));
                                         startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
                                         break;
                                     }
@@ -441,7 +428,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                         __end1 = MAXFILESIZE - 1L;
                                         __start2 = 0L;
                                         __end2 = _windowEndAddress.remove();
-                                        System.out.println("2 :: End Address removed::" + (__end2+1));
                                         __sendEOWSignal = true;
                                         __isWrapLoadNeeded = true;
                                         startOffset = -1L;
@@ -452,17 +438,13 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                             __sendEOWSignal = false;
                                             __isWrapLoadNeeded = false;
                                             startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
-                                            System.out.println("2.2 :: End Address removed::" + (__end1+1));
                                             break;
                                         } else {
                                             __end1 = MAXFILESIZE - 1L;
                                             __start2 = 0L;
                                             __end2 = READBUFFERSIZE - (MAXFILESIZE - __start1) - 1L;
-                                            System.out.println("****** start1 "+ __start1 + " end1:: "+ __end1 +" start2:: " + __start2 + "  end2:: "+ __end2);
-                                            System.out.println("****** end offset ::" + tempPeek);
                                             __sendEOWSignal = false;
                                             __isWrapLoadNeeded = true;
-                                            System.out.println("2.3 :: End Address removed::" + (__end1+1));
                                             startOffset = (__end2 + 1L) % MAXFILESIZE;
                                             break;
                                         }
@@ -474,11 +456,9 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                             else {
                                 if (_windowEndAddress.isEmpty() &&
                                         MAXFILESIZE - __start1 > READBUFFERSIZE) {
-                                    //System.out.println("Here1");
                                     __end1 = __start1 + READBUFFERSIZE - 1L;
                                     __sendEOWSignal = false;
                                     __isWrapLoadNeeded = false;
-                                    System.out.println("0.1 :: End Address removed::" + (__end1+1));
                                     startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
                                     break;
                                 } else if(_windowEndAddress.isEmpty() && (long)(MAXFILESIZE - __start1 ) + tempFileWriter >= 1L + READBUFFERSIZE) {
@@ -489,9 +469,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                     __sendEOWSignal = false;
                                     __isWrapLoadNeeded = true;
                                     startOffset = (__end2 + 1L) % MAXFILESIZE;
-                                    System.out.println("0.2 :: End Address removed::" + (__end1+1));
-                                    System.out.println("@@@@@@ start1 "+ __start1 + " end1:: "+ __end1 +" start2:: " + __start2 + "  end2:: "+ __end2);
-                                    System.out.println("@@@@@@ end offset ::" + _windowEndAddress.peek());
                                     break;
                                 }
                             }
@@ -502,8 +479,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                 long tempPeek = _windowEndAddress.peek();
                                 if (tempPeek > __start1 && tempPeek - __start1 + 1 <= READBUFFERSIZE) {
                                     __end1 = _windowEndAddress.remove();
-                                    //System.out.println("3 :: file writer pointer::" + tempFileWriter);
-                                    System.out.println("3 :: End Address removed::" + (__end1+1));
                                     __sendEOWSignal = true;
                                     __isWrapLoadNeeded = false;
                                     startOffset = -1L;
@@ -512,7 +487,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                     __end1 = __start1 + READBUFFERSIZE - 1L;
                                     __sendEOWSignal = false;
                                     __isWrapLoadNeeded = false;
-                                    System.out.println("3.1 :: End Address removed::" + (__end1+1));
                                     startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
                                     break;
                                 }
@@ -521,7 +495,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                 __end1 = __start1 + READBUFFERSIZE - 1L;
                                 __sendEOWSignal = false;
                                 __isWrapLoadNeeded = false;
-                                System.out.println("3.2 :: End Address removed::" + (__end1+1));
                                 startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
                                 break;
                             }
@@ -529,20 +502,12 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                         }
                     }
 
-                    //  } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    //
-                    //    e.printStackTrace();
-                    //}
-
                     int threadnum = _threadSequenceQueue.remove();
                     _threadSequenceQueue.add(threadnum);
                     _threadSequenceQueue.notifyAll();
 
-                    //}//Commented Synchorized TODO: check this condition when everything else is working
                     try {
                         if (__isWrapLoadNeeded) {
-                            //System.out.println("Start1 :: "+ __start1 + "   End1::"+ __end1 + "Start2 :: "+ __start2 + "   End2::"+ __end2);
                             int idx1 = loadBuffer(__start1, __end1, 0);
                             int idx2 = loadBuffer(__start2, __end2, idx1);
                             if (__sendEOWSignal) {
@@ -556,15 +521,11 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                         } else {
                             int idx1 = loadBuffer(__start1, __end1, 0);
                             if (__sendEOWSignal) {
-                                //System.out.println("-1 -1 set by::" + __threadSequence);
                                 _bufferList.get(__threadSequence)[idx1] = -1;
                                 _bufferList.get(__threadSequence)[idx1 + 1] = -1;
-                                System.out.println("In 2 :: -1 -1 is set in Buffer::"+ __threadSequence);
                             } else {
-                                //System.out.println("Value of idx1 is::" + idx1);
                                 _bufferList.get(__threadSequence)[idx1] = 0;
                                 _bufferList.get(__threadSequence)[idx1 + 1] = 0;
-                                // System.out.println("!!!Filling Buffer::" + _bufferList.get(__threadSequence)[47988000]);
                             }
                         }
 
@@ -572,10 +533,8 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                         // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
-
-                    // System.out.println("The buffer ready to be read is:: " + __threadSequence);
                     _producerConsumerMap.put(__threadSequence, 1);
-                }//to be removed
+                }
             }
         }
 
@@ -592,10 +551,8 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
             _fileReader.seek(s);
 
             int length = (int) (e - s + 1);
-            System.out.println("Inside LoadBuffer:: Start ::" + s + "    End::"+ e + "  Length::"+length);
             byte[] tempArr = new byte[length];
             try {
-                //  System.out.println("Start offset::"+s + "   End Offset::"+e + "by thread::"+__threadSequence + " with File Length::"+ _fileReader.length());
                 _fileReader.readFully(tempArr, 0, length);
                 System.arraycopy(tempArr, 0, _bufferList.get(__threadSequence), index, tempArr.length);
             }

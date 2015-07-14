@@ -1,6 +1,5 @@
 package storm.starter.Interfaces;
 
-import backtype.storm.task.OutputCollector;
 import backtype.storm.tuple.Tuple;
 
 /**

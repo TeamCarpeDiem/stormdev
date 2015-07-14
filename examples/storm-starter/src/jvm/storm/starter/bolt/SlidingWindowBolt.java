@@ -1,6 +1,5 @@
 package storm.starter.bolt;
 
-import backtype.storm.task.OutputCollector;
 import backtype.storm.tuple.Tuple;
 import org.apache.log4j.Logger;
 import storm.starter.HelperClasses.WindowObject;
@@ -14,11 +13,9 @@ import storm.starter.Interfaces.IWindowBolt;
 
 public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
     final static Logger LOG = Logger.getLogger(SlidingWindowBolt.class.getName());
-    OutputCollector _collector;
     long windowStart; //Variable which keeps track of the window start
     long windowEnd; //Variable which keeps track of the window end
     long tupleCount; //Variable to keep track of the tuple count for time based window
-    boolean isExecutedOnce = false; //Boolean which controls thread spawning
     boolean isTimeBased = false;
     long slideBy;
 
@@ -76,18 +73,23 @@ public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
             if(tupleCount != windowStart && tupleCount != windowEnd) //The tuple is in the middle of a window
                 storeTuple(tuple, -1, 1);
             if (tupleCount == windowEnd) { //If the tuple marks the window end
+                LOG.info("Window End::" + (tupleCount));
                 storeTuple(tuple, 1, 1);
                 windowEnd += slideBy;
             }
             if (tupleCount == windowStart) {//If the tuple marks the window beginning
+                LOG.info("Window Start::" + (tupleCount));
                 storeTuple(tuple, 0, 1);
                 windowStart += slideBy;
             }
         }
-
-
     }
 
+    /**
+     * This function should be implemented by the bolts which has to detect the Mock Tuples sent by the Common Window Framework
+     * @param tuple The tuple which is received by this bolt
+     * @return Whether the tuple received is a mock tuple or not
+     */
     @Override
     public boolean isMockTick(Tuple tuple) {
         return false;

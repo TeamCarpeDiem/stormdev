@@ -15,7 +15,10 @@ import storm.starter.HelperClasses.WindowObject;
 import storm.starter.Interfaces.IBaseWindowBolt;
 
 import java.io.*;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -70,7 +73,8 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
         Properties prop = new Properties();
         InputStream input = null;
         try {
-            FILEPATH = System.getProperty("user.home")+"//WindowsContent";
+            //FILEPATH = System.getProperty("user.home")+"//WindowsContent";
+            FILEPATH = "//tmp//WindowsContent";
             input = new FileInputStream("config.properties");
             prop.load(input);
             MAXFILESIZE = Long.valueOf(prop.getProperty("maximumFileSize"));
@@ -181,8 +185,37 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     @Override
     public void cleanup() {
         _writeBuffer = null;
-        File fp = new File(FILEPATH, "a");
-        fp.delete();
+        try {
+            _memoryReader.interrupt();
+        }
+        catch(ThreadDeath ex)
+        {
+            LOG.info("Emitter thread Stopped");
+            throw ex;
+        }
+        for (int i = 0; i < MAXTHREAD; i++) {
+            try {
+                    _diskReaderThread[i].interrupt();
+            }
+            catch(ThreadDeath ex)
+            {
+                LOG.info("Disk Reader thread " + i + " stopped!");
+                throw ex;
+            }
+        }
+        try {
+            _fileReader.close();
+            _fileWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        File fp = new File(FILEPATH);
+        Path fpPath = fp.toPath();
+        try {
+            Files.deleteIfExists(fpPath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -293,6 +326,10 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                 }
             }
         }
+        catch(ClosedChannelException ex)
+        {
+            LOG.info("File Channel is closed!");
+        }
         catch(IOException ex)
         {
             ex.printStackTrace();
@@ -389,7 +426,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                         try {
                             _threadSequenceQueue.wait();
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            LOG.info("Disk Reading threads are interrupted");
                         }
                     }
 

@@ -418,6 +418,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                 // top of file post wrapping
                                 if (tempPeek >= __start1) {
                                     //Difference between end of window and start offset should fit in buffer
+                                    //DiskToMemoryCondition1
                                     if ( tempPeek - __start1 + 1 <= READBUFFERSIZE) {
                                         __end1 = _windowEndAddress.remove();
                                         __sendEOWSignal = true;
@@ -426,6 +427,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                         break;
                                         //difference between end removed and start offset is greater
                                         // than buffer capacity
+                                        //DiskToMemory Condition 2
                                     } else if(tempPeek - __start1 >= READBUFFERSIZE + 1L){
                                         __end1 = __start1 + READBUFFERSIZE - 1L;
                                         __sendEOWSignal = false;
@@ -441,6 +443,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                     // whole window data till the end of window beginning from
                                     // startoffset fits in the buffer.
                                     //Data is partly at the end of the file and partly on top
+                                    //DiskToMemory Condition 3
                                     if ((long)(MAXFILESIZE - __start1) + tempPeek + 1L <= READBUFFERSIZE) {
                                         __end1 = MAXFILESIZE - 1L;
                                         __start2 = 0L;
@@ -451,6 +454,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                         break;
                                     //data in file from startoffset till the end of file can fit in the buffersize,
                                     // excluding end of window
+                                    // DiskToMemory Condition 4
                                     } else if((long)(MAXFILESIZE - __start1) + tempPeek +1L >= READBUFFERSIZE +1) {
                                         if (MAXFILESIZE - __start1 >= READBUFFERSIZE) {
                                             __end1 = __start1 + READBUFFERSIZE - 1L;
@@ -461,6 +465,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                         }
                                         // The data is too much for buffer and endof window cannot be stored.
                                         // Store data till buffer is full.
+                                        //DiskToMemory Condition 5
                                         else {
                                             __end1 = MAXFILESIZE - 1L;
                                             __start2 = 0L;
@@ -477,6 +482,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                             //The window address is not present
                             else {
                                 //Check if there is enough data to fill the buffer and wrapping up is not needed
+                                //DiskToMemory Condition 6
                                 if (_windowEndAddress.isEmpty() &&
                                         MAXFILESIZE - __start1 > READBUFFERSIZE) {
                                     __end1 = __start1 + READBUFFERSIZE - 1L;
@@ -485,6 +491,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                     startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
                                     break;
                                 //Check if there is enough data to fill the buffer and wrapping up is needed
+                                // DiskToMemory Condition 7
                                 } else if(_windowEndAddress.isEmpty() && (long)(MAXFILESIZE - __start1 )
                                         + tempFileWriter >= 1L + READBUFFERSIZE) {
                                     __end1 = MAXFILESIZE - 1L;
@@ -504,6 +511,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                             if (!_windowEndAddress.isEmpty()) {
                                 long tempPeek = _windowEndAddress.peek();
                                 //Check if all the data from startoffset till end of window length can fit in buffer
+                                //DisToMemory Condition 8
                                 if (tempPeek > __start1 && tempPeek - __start1 + 1 <= READBUFFERSIZE) {
                                     __end1 = _windowEndAddress.remove();
                                     __sendEOWSignal = true;
@@ -512,6 +520,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                     break;
                                 }
                                 //  Window end is present but the data is too much for a buffer
+                                // DiskToMemory Condition 9
                                 else if(tempPeek > __start1 && tempPeek - __start1 + 1 >= READBUFFERSIZE+1L) {
                                     __end1 = __start1 + READBUFFERSIZE - 1L;
                                     __sendEOWSignal = false;
@@ -521,6 +530,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                 }
                             }
                             //End of window is not present but enough data to load a buffer
+                            //DikToMemory Condition 10
                             else if (tempFileWriter - __start1 >= READBUFFERSIZE+1) {
                                 __end1 = __start1 + READBUFFERSIZE - 1L;
                                 __sendEOWSignal = false;
@@ -689,6 +699,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
             /*if length is zero, this means the buffer was complete filled
             and has been read completely without sending any end of window signal.
             Mark this buffer as read and go to the beginning of next buffer
+            EmitTuple Condition 1
             */
             if(__length == 0)
             {
@@ -702,6 +713,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
             /*if length is -1, this means the buffer had an end of window length.
             Buffer has been read completely and end of window signal. needs to be sent.
             Mark this buffer as read and go to the beginning of next buffer
+            EmitTuple Condition2
             */
             else if(__length == -1)
             {
@@ -716,6 +728,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
             }
             /*
             The length of bytes required to form a tuple is present within same buffer
+            EmitTuple Condition 3
              */
             else if(__bufferIndex + __length <= READBUFFERSIZE)
             {
@@ -727,7 +740,8 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                 return;
             }
             /*
-            he length of bytes required to form a tuple is present across multiple buffer
+            The length of bytes required to form a tuple is present across multiple buffer
+             EmitTuple Condition4
              */
             else {
                 byte[] tempArray = new byte[__length];

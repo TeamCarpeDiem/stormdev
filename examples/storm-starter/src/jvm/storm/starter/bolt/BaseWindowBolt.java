@@ -323,6 +323,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
             _fileWriter.write(_writeBuffer, 0, (int) remainingFileSpace);
             //Move the pointer to the beginning of the file
             _fileWriter.getChannel().position(0L);
+            LOG.info("File Wrapped Up!!!");
             //Write the rest of the data in the beginning of the file.
             _fileWriter.write(_writeBuffer, (int)remainingFileSpace, bufferDataLength - (int)remainingFileSpace);
         }

@@ -2,6 +2,7 @@ package storm.starter;
 
 import backtype.storm.topology.BoltDeclarer;
 import backtype.storm.topology.TopologyBuilder;
+import backtype.storm.topology.base.BaseBasicBolt;
 import backtype.storm.topology.base.BaseRichBolt;
 import storm.starter.Interfaces.IWindowBolt;
 import storm.starter.bolt.BaseWindowBolt;
@@ -53,6 +54,17 @@ public class WindowTopologyBuilder extends TopologyBuilder {
             obj = super.setBolt(id, bolt, parallelism_hint);
         }
         else throw new Exception(x + " did not implement IWindowBolt Interface");
+        return obj;
+    }
+
+    public BoltDeclarer setBolt(String id, BaseBasicBolt bolt, Number parallelism_hint) throws Exception {
+
+        Class<?> x = bolt.getClass();
+        BoltDeclarer obj = null;
+        if (bolt instanceof IWindowBolt){
+            obj = super.setBolt(id, bolt, parallelism_hint);
+        }
+        else throw new Exception(x + " did not implement IWindow Interface");
         return obj;
     }
 }

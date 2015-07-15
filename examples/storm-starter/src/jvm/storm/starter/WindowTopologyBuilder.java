@@ -6,6 +6,7 @@ import backtype.storm.topology.base.BaseBasicBolt;
 import backtype.storm.topology.base.BaseRichBolt;
 import storm.starter.Interfaces.IWindowBolt;
 import storm.starter.bolt.BaseWindowBolt;
+import org.apache.log4j.Logger;
 
 /**
  * Created by Pradheep on 6/18/15.
@@ -15,6 +16,8 @@ import storm.starter.bolt.BaseWindowBolt;
     //IWindowBolt which contains the isMockTick function.
 public class WindowTopologyBuilder extends TopologyBuilder {
 
+    //Instantiate logger
+    final static Logger LOG = Logger.getLogger(WindowTopologyBuilder.class.getName());
     /**
      * This functions checks the bolts created by extending BaseWindowBolt if it has implemented the
      * IWindowBolt interface which contains the isMockTick function.
@@ -32,7 +35,10 @@ public class WindowTopologyBuilder extends TopologyBuilder {
             //call the base class function if the bolt has implemented the IWindowBolt interface.
             obj = super.setBolt(id, bolt, parallelism_hint);
         }
-        else throw new Exception(x + " did not implement IWindowBolt Interface");
+        else {
+            LOG.info(x + " did not implement IWindowBolt Interface");
+            throw new Exception(x + " did not implement IWindowBolt Interface");
+        }
         return obj;
     }
 
@@ -53,10 +59,22 @@ public class WindowTopologyBuilder extends TopologyBuilder {
             //call the base class function if the bolt has implemented the IWindowBolt interface.
             obj = super.setBolt(id, bolt, parallelism_hint);
         }
-        else throw new Exception(x + " did not implement IWindowBolt Interface");
+        else {
+            LOG.info(x + " did not implement IWindowBolt Interface");
+            throw new Exception(x + " did not implement IWindowBolt Interface");
+        }
         return obj;
     }
 
+    /**
+     * This functions checks the bolts created by extending BaseBasicBolt if it has implemented the
+     * IWindowBolt interface which contains the isMockTick function.
+     * @param id
+     * @param bolt
+     * @param parallelism_hint
+     * @return BoltDeclarer
+     * @throws Exception
+     */
     public BoltDeclarer setBolt(String id, BaseBasicBolt bolt, Number parallelism_hint) throws Exception {
 
         Class<?> x = bolt.getClass();
@@ -64,7 +82,10 @@ public class WindowTopologyBuilder extends TopologyBuilder {
         if (bolt instanceof IWindowBolt){
             obj = super.setBolt(id, bolt, parallelism_hint);
         }
-        else throw new Exception(x + " did not implement IWindow Interface");
+        else {
+            LOG.info(x + " did not implement IWindowBolt Interface");
+            throw new Exception(x + " did not implement IWindow Interface");
+        }
         return obj;
     }
 }

@@ -73,8 +73,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
         Properties prop = new Properties();
         InputStream input = null;
         try {
-            //FILEPATH = System.getProperty("user.home")+"//WindowsContent";
-            FILEPATH = "//tmp//WindowsContent";
+            FILEPATH = System.getProperty("user.home")+"//WindowsContent";
             input = new FileInputStream("config.properties");
             prop.load(input);
             MAXFILESIZE = Long.valueOf(prop.getProperty("maximumFileSize"));

@@ -31,6 +31,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     int READBUFFERSIZE;
     int MAXTHREAD;
     int TICKTUPLEFREQUENCY;
+    long CATCHUPSLEEPTIME;
     String FILEPATH;
 
     /******************************* Configurable Parameters *******************************/
@@ -77,6 +78,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
             READBUFFERSIZE = Integer.valueOf(prop.getProperty("readBufferSize"));
             MAXTHREAD = Integer.valueOf(prop.getProperty("numberOfThreads"));
             TICKTUPLEFREQUENCY = Integer.valueOf(prop.getProperty("TickTupleFrequency"));
+            CATCHUPSLEEPTIME = Long.valueOf(prop.getProperty("catchupsleeptime"));
             startOffset = -1L; // used by disk reader thread to get the start offset oof the disk
         } catch (IOException e) {
             e.printStackTrace();
@@ -231,7 +233,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                     && (((long)_windowStartAddress.peek() - fc.position() ) < (long)READBUFFERSIZE))
             {
                 LOG.info("Writer catching up  on Reader..  Start Address::"+ _windowStartAddress.peek());
-                Utils.sleep(10000);
+                Utils.sleep(CATCHUPSLEEPTIME);
             }
 
             //If the tuple marks the beginning of the window, then start address queue has to be updated

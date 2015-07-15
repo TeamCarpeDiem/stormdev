@@ -9,6 +9,8 @@ import java.io.Serializable;
 /**
  * Created by sachin on 6/9/15. Window object will be used to pass parameters related to windowing mechanism
  * Modified by Sachin createwindows() funtion will accept WindowObject as a parameter.
+ * Pradheep: Added CreateWindow function which creates the corresponding window object based on the type of
+ * window which the user needs
  */
 public class WindowObject implements Serializable{
 
@@ -120,6 +122,11 @@ public class WindowObject implements Serializable{
     }
     /******* End of Getter and Setter ********/
 
+    /**
+     * This method creates the corresponding object of the window type class which the user wants to use.
+     * @return window object
+     * @throws Exception
+     */
     public BaseWindowBolt CreateWindow() throws Exception {
 
         BaseWindowBolt window = null;

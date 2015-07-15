@@ -239,6 +239,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
             //If the tuple marks the beginning of the window, then start address queue has to be updated
             if (flag == 0) {
                 writeInParts();
+
                 for (int i = 0; i < count; i++) {
                     _windowStartAddress.add(fc.position());
                 }
@@ -414,6 +415,19 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                             if (!_windowEndAddress.isEmpty()) {
 
                                 long tempPeek = _windowEndAddress.peek();
+
+                                //check for empty window
+                                if(EmptyWindow(__start1, tempPeek))
+                                {
+                                    __end1 = _windowEndAddress.remove();
+                                    __start1 = 1;
+                                    __end1 = 0;
+                                    __sendEOWSignal = true;
+                                    __isWrapLoadNeeded = false;
+                                    startOffset = -1L;
+                                    break;
+                                }
+
                                 // if the peek is ahead of the start offset
                                 //check if the end offset is still ahead of the start offset and not at the
                                 // top of file post wrapping
@@ -511,9 +525,21 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                             //if end of window length address is present
                             if (!_windowEndAddress.isEmpty()) {
                                 long tempPeek = _windowEndAddress.peek();
+                                //check for empty window
+                                if(EmptyWindow(__start1, tempPeek))
+                                {
+                                    __end1 = _windowEndAddress.remove();
+                                    __start1 = 1;
+                                    __end1 = 0;
+                                    __sendEOWSignal = true;
+                                    __isWrapLoadNeeded = false;
+                                    startOffset = -1L;
+                                    break;
+                                }
+
                                 //Check if all the data from startoffset till end of window length can fit in buffer
                                 //DisToMemory Condition 8
-                                if (tempPeek > __start1 && tempPeek - __start1 + 1 <= READBUFFERSIZE) {
+                                if (tempPeek > __start1 && tempPeek - __start1 + 1 <= READBUFFERSIZE ) {
                                     __end1 = _windowEndAddress.remove();
                                     __sendEOWSignal = true;
                                     __isWrapLoadNeeded = false;
@@ -579,6 +605,18 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
         }
 
         /**
+         * This function takes the start and end address try to figure out if the wiindow is empty or not
+         * @param start start offset of the file
+         * @param end end offset  of the file
+         * @return
+         */
+        private boolean EmptyWindow(long start, long end)
+        {
+            end = (end+1)%MAXFILESIZE;
+            return end == start;
+        }
+
+        /**
          * Receive start and end offest of the file from where data needs to be read.
          * The index variable marks the point in current buffer from where the data needs to be stored in the buffer
          * @param s
@@ -591,6 +629,8 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
             _fileReader.seek(s);
 
             int length = (int) (e - s + 1);
+            if(length ==0)
+                return length;
             byte[] tempArr = new byte[length];
             try {
                 _fileReader.readFully(tempArr, 0, length);

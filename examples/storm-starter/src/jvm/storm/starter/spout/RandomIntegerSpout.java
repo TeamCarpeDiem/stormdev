@@ -41,7 +41,7 @@ public class RandomIntegerSpout extends BaseRichSpout {
         }
 
         //sleep between the calls
-        Utils.sleep(1);
+        Utils.sleep(2);
 
         //code to simulate differnt tuple arrival rate
        /* count++;
@@ -81,10 +81,8 @@ public class RandomIntegerSpout extends BaseRichSpout {
         str[3] = "This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.This is a 4KB message.";
 
         //Generate randon index everytime to select a message of different size.
-        //int strIndex = _rand.nextInt(2);
-        //_collector.emit(new Values(str[strIndex]);
-
-        _collector.emit(new Values(str[3]));
+        int strIndex = _rand.nextInt(4);
+        _collector.emit(new Values(str[strIndex]));
     }
 
     @Override

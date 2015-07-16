@@ -115,11 +115,6 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     {
         try {
             _fileWriter = new FileOutputStream(FILEPATH);
-            try {
-                _fileWriter.getChannel().lock();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
             _fileReader = new RandomAccessFile(FILEPATH,"r");
         } catch (FileNotFoundException e) {
             e.printStackTrace();

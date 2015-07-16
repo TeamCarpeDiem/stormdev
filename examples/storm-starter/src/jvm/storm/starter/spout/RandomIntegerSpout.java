@@ -44,7 +44,7 @@ public class RandomIntegerSpout extends BaseRichSpout {
         Utils.sleep(3);
 
         //code to simulate differnt tuple arrival rate
-        count++;
+       /* count++;
         if(count < 500)
         {
             Utils.sleep(1);
@@ -67,7 +67,7 @@ public class RandomIntegerSpout extends BaseRichSpout {
         {
             Utils.sleep(10);
             count = 0;
-        }
+        }*/
 
         //code to simulate to send to mixed sixe size tuples randomly
         String str[] = new String[10];
@@ -84,7 +84,7 @@ public class RandomIntegerSpout extends BaseRichSpout {
         //int strIndex = _rand.nextInt(2);
         //_collector.emit(new Values(str[strIndex]);
 
-        _collector.emit(new Values(str[0]));
+        _collector.emit(new Values(str[3]));
     }
 
     @Override

@@ -34,7 +34,7 @@ public class CummulativeMovingAvgTopology {
         conf.setDebug(false);
         
         wObject = new WindowObject("Sliding", 10000,2500, false);
-        //wObject = new WindowObject("landmark", 3, 5, true);
+        //wObject = new WindowObject("Sliding", 20, 5, true); //Uncomment this line for time based window and comment the previois line
         builder = new WindowTopologyBuilder();
         builder.setSpout("RandomInt", new RandomIntegerSpout(), 10);
         builder.setBolt("Sliding", wObject.CreateWindow() ,1).shuffleGrouping("RandomInt");

@@ -49,7 +49,7 @@ public class CummulativeMovingAvgTopology {
 
             LocalCluster cluster = new LocalCluster();
             cluster.submitTopology("test", conf, builder.createTopology());
-            Utils.sleep(6000000);
+            Utils.sleep(20000);
             cluster.killTopology("test");
             cluster.shutdown();
             exit(0);

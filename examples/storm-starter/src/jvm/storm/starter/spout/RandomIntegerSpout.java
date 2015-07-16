@@ -36,12 +36,12 @@ public class RandomIntegerSpout extends BaseRichSpout {
         //tick tuple being started after all the spout instances are started.
         if(isFirst)
         {
-            Utils.sleep(3000);
+            Utils.sleep(10000);
             isFirst = false;
         }
 
         //sleep between the calls
-        Utils.sleep(3);
+        Utils.sleep(1);
 
         //code to simulate differnt tuple arrival rate
        /* count++;

@@ -12,7 +12,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import storm.starter.HelperClasses.WindowObject;
 import storm.starter.bolt.MovingAverageBolt;
-import storm.starter.spout.RandomIntegerSpout;
+import storm.starter.spout.RandomMessageSpout;
 
 import java.io.File;
 
@@ -36,8 +36,8 @@ public class CummulativeMovingAvgTopology {
         wObject = new WindowObject("Sliding", 10000,2500, false);
         //wObject = new WindowObject("Sliding", 20, 5, true); //Uncomment this line for time based window and comment the previois line
         builder = new WindowTopologyBuilder();
-        builder.setSpout("RandomInt", new RandomIntegerSpout(), 10);
-        builder.setBolt("Sliding", wObject.CreateWindow() ,1).shuffleGrouping("RandomInt");
+        builder.setSpout("RandomMessage", new RandomMessageSpout(), 10);
+        builder.setBolt("Sliding", wObject.CreateWindow() ,1).shuffleGrouping("RandomMessage");
         builder.setBolt("Average", new MovingAverageBolt(), 1).shuffleGrouping("Sliding","dataStream")
                 .shuffleGrouping("Sliding","mockTickTuple");
 

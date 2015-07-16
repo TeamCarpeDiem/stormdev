@@ -16,9 +16,9 @@ import org.apache.log4j.Logger;
 import java.util.Map;
 import java.util.Random;
 
-public class RandomIntegerSpout extends BaseRichSpout {
+public class RandomMessageSpout extends BaseRichSpout {
     int count = 0;
-    final static Logger LOG = Logger.getLogger(RandomIntegerSpout.class.getName());
+    final static Logger LOG = Logger.getLogger(RandomMessageSpout.class.getName());
     SpoutOutputCollector _collector;
     Random _rand;
     boolean isFirst = true;

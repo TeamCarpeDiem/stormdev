@@ -67,6 +67,9 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     /************************* Updated while emitting data from memory  *************************/
     Thread _memoryReader;
 
+    /************************* Updated when Cleanup is called *****************/
+    int cleanUp;
+
     /****************************** Constructor *****************************/
     public BaseWindowBolt(WindowObject wObj)
     {
@@ -108,6 +111,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
 
         _bufferIndex = 0;
         secondCount = 0;
+        cleanUp = 0;
     }
 
     /*    Abstract Functions   */
@@ -178,23 +182,17 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
 
     @Override
     public void cleanup() {
+        cleanUp = 1;
         _writeBuffer = null;
-        try {
-            _memoryReader.interrupt();
-        }
-        catch(ThreadDeath ex)
-        {
-            LOG.info("Emitter thread Stopped");
-            throw ex;
-        }
-        for (int i = 0; i < MAXTHREAD; i++) {
+        _memoryReader.interrupt();
+        for (int i = 0; i < MAXTHREAD;) {
             try {
-                    _diskReaderThread[i].interrupt();
+                _diskReaderThread[i].interrupt();
+                i++;
             }
-            catch(ThreadDeath ex)
+            catch(Exception ex)
             {
-                LOG.info("Disk Reader thread " + i + " stopped!");
-                throw ex;
+                continue;
             }
         }
         try {
@@ -322,7 +320,8 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
         }
         catch(ClosedChannelException ex)
         {
-            LOG.info("File Channel is closed!");
+            if(cleanUp != 1)
+                LOG.error("Writer thread interrupted while writing to the disk");
         }
         catch(IOException ex)
         {
@@ -439,7 +438,15 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                     while (true) {
                         try {
                             tempFileWriter = _fileWriter.getChannel().position();
-                        } catch (IOException e) {
+                        }
+                        catch(ClosedChannelException ex)
+                        {
+                            if(cleanUp != 1)
+                            {
+                                LOG.error("Reader threads interrupted while reading from the disk");
+                            }
+                        }
+                        catch (IOException e) {
                             e.printStackTrace();
                         }
                         //After Wrapping Up: file is being written from the top

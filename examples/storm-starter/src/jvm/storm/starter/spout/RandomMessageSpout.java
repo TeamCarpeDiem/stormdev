@@ -36,7 +36,7 @@ public class RandomMessageSpout extends BaseRichSpout {
         //tick tuple being started after all the spout instances are started.
         if(isFirst)
         {
-            Utils.sleep(10000);
+            Utils.sleep(3000);
             isFirst = false;
         }
 

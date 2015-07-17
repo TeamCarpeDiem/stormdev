@@ -2,10 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="57057aaa-7c75-4e3c-9a77-975dc01fb597" name="Default" comment="">
-      <change type="DELETED" beforePath="D:\Harini\stormdev\examples\storm-starter\target\classes\storm\starter\spout\RandomIntegerSpout.class" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/CummulativeMovingAvgTopology.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/CummulativeMovingAvgTopology.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/HelperClasses/WindowObject.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/HelperClasses/WindowObject.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/jvm/storm/starter/bolt/BaseWindowBolt.java" afterPath="$PROJECT_DIR$/src/jvm/storm/starter/bolt/BaseWindowBolt.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/jvm/storm/starter/spout/RandomMessageSpout.java" afterPath="$PROJECT_DIR$/src/jvm/storm/starter/spout/RandomMessageSpout.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+    </list>
+    <list id="17c50505-ded7-497a-afb1-e423cb6e255f" name="New changelist" comment="">
+      <change type="DELETED" beforePath="D:\Harini\stormdev\examples\storm-starter\target\classes\storm\starter\spout\RandomIntegerSpout.class" afterPath="" />
     </list>
     <ignored path="storm-starter.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -50,8 +53,8 @@
       <file leaf-file-name="RandomMessageSpout.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/spout/RandomMessageSpout.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.109375">
-              <caret line="61" column="31" selection-start-line="61" selection-start-column="31" selection-end-line="61" selection-end-column="31" />
+            <state vertical-scroll-proportion="-0.421875">
+              <caret line="38" column="25" selection-start-line="38" selection-start-column="25" selection-end-line="38" selection-end-column="25" />
               <folding />
             </state>
           </provider>
@@ -61,7 +64,7 @@
         <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/CummulativeMovingAvgTopology.java">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="51" column="27" selection-start-line="51" selection-start-column="27" selection-end-line="51" selection-end-column="27" />
+              <caret line="51" column="25" selection-start-line="51" selection-start-column="25" selection-end-line="51" selection-end-column="25" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -72,9 +75,15 @@
       <file leaf-file-name="BaseWindowBolt.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/bolt/BaseWindowBolt.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="175.72728">
-              <caret line="198" column="9" selection-start-line="198" selection-start-column="9" selection-end-line="198" selection-end-column="9" />
-              <folding />
+            <state vertical-scroll-proportion="77.166664">
+              <caret line="639" column="58" selection-start-line="639" selection-start-column="58" selection-end-line="639" selection-end-column="58" />
+              <folding>
+                <element signature="e#5345#5346#0" expanded="true" />
+                <element signature="e#5383#5384#0" expanded="true" />
+                <element signature="e#7832#7848#0" expanded="true" />
+                <element signature="e#15206#15207#0" expanded="true" />
+                <element signature="e#15258#15259#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -105,12 +114,12 @@
         <option value="$PROJECT_DIR$/src/jvm/storm/starter/bolt/LandmarkWindowBolt.java" />
         <option value="$PROJECT_DIR$/src/jvm/storm/starter/Interfaces/IWindowBolt.java" />
         <option value="$PROJECT_DIR$/src/jvm/storm/starter/HelperClasses/WindowObject.java" />
-        <option value="$PROJECT_DIR$/src/jvm/storm/starter/bolt/BaseWindowBolt.java" />
         <option value="$PROJECT_DIR$/config.properties" />
         <option value="$PROJECT_DIR$/log4j.properties" />
         <option value="$PROJECT_DIR$/src/jvm/storm/starter/spout/RandomIntegerSpout.java" />
-        <option value="$PROJECT_DIR$/src/jvm/storm/starter/CummulativeMovingAvgTopology.java" />
         <option value="$PROJECT_DIR$/src/jvm/storm/starter/spout/RandomMessageSpout.java" />
+        <option value="$PROJECT_DIR$/src/jvm/storm/starter/CummulativeMovingAvgTopology.java" />
+        <option value="$PROJECT_DIR$/src/jvm/storm/starter/bolt/BaseWindowBolt.java" />
       </list>
     </option>
   </component>
@@ -219,6 +228,32 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="spout" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="storm-starter" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="storm-starter" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="jvm" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="starter" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="bolt" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -436,6 +471,7 @@
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="57057aaa-7c75-4e3c-9a77-975dc01fb597" name="Default" comment="" />
+      <changelist id="17c50505-ded7-497a-afb1-e423cb6e255f" name="New changelist" comment="" />
       <created>1436465803758</created>
       <option name="number" value="Default" />
       <updated>1436465803758</updated>
@@ -614,7 +650,13 @@
       <option name="project" value="LOCAL" />
       <updated>1437068121989</updated>
     </task>
-    <option name="localTasksCounter" value="30" />
+    <task id="LOCAL-00030" summary="Updating cleanup">
+      <created>1437091964456</created>
+      <option name="number" value="00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1437091964456</updated>
+    </task>
+    <option name="localTasksCounter" value="31" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -703,7 +745,8 @@
     <MESSAGE value="Cleaned RandomIntegerSpout" />
     <MESSAGE value="Commiting config" />
     <MESSAGE value="Renamed randominteger spout" />
-    <option name="LAST_COMMIT_MESSAGE" value="Renamed randominteger spout" />
+    <MESSAGE value="Updating cleanup" />
+    <option name="LAST_COMMIT_MESSAGE" value="Updating cleanup" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -754,7 +797,13 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#5345#5346#0" expanded="true" />
+            <element signature="e#5383#5384#0" expanded="true" />
+            <element signature="e#7832#7848#0" expanded="true" />
+            <element signature="e#15206#15207#0" expanded="true" />
+            <element signature="e#15258#15259#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -880,24 +929,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/bolt/BaseWindowBolt.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="175.72728">
-          <caret line="198" column="9" selection-start-line="198" selection-start-column="9" selection-end-line="198" selection-end-column="9" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/CummulativeMovingAvgTopology.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="51" column="27" selection-start-line="51" selection-start-column="27" selection-end-line="51" selection-end-column="27" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/target/classes/storm/starter/CummulativeMovingAvgTopology.class">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -908,10 +939,34 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/CummulativeMovingAvgTopology.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="51" column="25" selection-start-line="51" selection-start-column="25" selection-end-line="51" selection-end-column="25" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/bolt/BaseWindowBolt.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="77.166664">
+          <caret line="639" column="58" selection-start-line="639" selection-start-column="58" selection-end-line="639" selection-end-column="58" />
+          <folding>
+            <element signature="e#5345#5346#0" expanded="true" />
+            <element signature="e#5383#5384#0" expanded="true" />
+            <element signature="e#7832#7848#0" expanded="true" />
+            <element signature="e#15206#15207#0" expanded="true" />
+            <element signature="e#15258#15259#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/spout/RandomMessageSpout.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.109375">
-          <caret line="61" column="31" selection-start-line="61" selection-start-column="31" selection-end-line="61" selection-end-column="31" />
+        <state vertical-scroll-proportion="-0.421875">
+          <caret line="38" column="25" selection-start-line="38" selection-start-column="25" selection-end-line="38" selection-end-column="25" />
           <folding />
         </state>
       </provider>

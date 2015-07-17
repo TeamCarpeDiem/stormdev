@@ -325,7 +325,8 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
         }
         catch(IOException ex)
         {
-            ex.printStackTrace();
+            if(cleanUp != 1)
+                ex.printStackTrace();
         }
     }
 
@@ -665,16 +666,18 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
          * @throws IOException
          */
         private int loadBuffer(long s, long e, int index) throws IOException {
-            _fileReader.seek(s);
+
             int length = (int) (e - s + 1);
             byte[] tempArr = new byte[length];
             try {
+                _fileReader.seek(s);
                 _fileReader.readFully(tempArr, 0, length);
                 System.arraycopy(tempArr, 0, _bufferList.get(__threadSequence), index, tempArr.length);
             }
             catch(Exception ex)
             {
-                ex.printStackTrace();
+                if(cleanUp != 1)
+                    ex.printStackTrace();
             }
             return length;
         }

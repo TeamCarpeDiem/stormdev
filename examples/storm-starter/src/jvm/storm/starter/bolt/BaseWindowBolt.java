@@ -10,7 +10,9 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import backtype.storm.utils.Utils;
+import com.google.common.base.Charsets;
 import org.apache.log4j.Logger;
+import org.apache.storm.guava.base.Utf8;
 import storm.starter.HelperClasses.WindowObject;
 import storm.starter.Interfaces.IBaseWindowBolt;
 
@@ -79,15 +81,22 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
             FILEPATH = System.getProperty("user.home")+"//WindowsContent";
             input = new FileInputStream("config.properties");
             prop.load(input);
-            MAXFILESIZE = Long.valueOf(prop.getProperty("maximumFileSize"));
-            WRITEBUFFERSIZE = Integer.valueOf(prop.getProperty("writeBufferSize"));
-            READBUFFERSIZE = Integer.valueOf(prop.getProperty("readBufferSize"));
-            MAXTHREAD = Integer.valueOf(prop.getProperty("numberOfThreads"));
-            TICKTUPLEFREQUENCY = Integer.valueOf(prop.getProperty("TickTupleFrequency"));
-            CATCHUPSLEEPTIME = Long.valueOf(prop.getProperty("catchupsleeptime"));
+            MAXFILESIZE = Long.parseLong(prop.getProperty("maximumFileSize"));//FindBug fix
+            WRITEBUFFERSIZE = Integer.parseInt(prop.getProperty("writeBufferSize"));//FindBug fix
+            READBUFFERSIZE = Integer.parseInt(prop.getProperty("readBufferSize"));//FindBug fix
+            MAXTHREAD = Integer.parseInt(prop.getProperty("numberOfThreads"));//FindBug fix
+            TICKTUPLEFREQUENCY = Integer.parseInt(prop.getProperty("TickTupleFrequency"));//FindBug fix
+            CATCHUPSLEEPTIME = Long.parseLong(prop.getProperty("catchupsleeptime"));//FindBug fix
             startOffset = -1L; // used by disk reader thread to get the start offset oof the disk
         } catch (IOException e) {
             e.printStackTrace();
+        }
+        finally {
+            try {
+                input.close(); //FindBug Fix
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         if(wObj.getWindowLength() <= 0) {
             throw new IllegalArgumentException("Window length is either null or negative");
@@ -277,7 +286,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
             //If the tuple is a tuple in the middle of the window, it has to be added to the buffer
             if(!isTimeBased || (isTimeBased && flag == -1)) {
                 String obj = tuple.getString(0);
-                byte[] bytes = obj.getBytes();
+                byte[] bytes = obj.getBytes(Charsets.UTF_8);//FindBug fix
                 int len = bytes.length;
 
                 //If the current tuple can't be added in the buffer because of lack of space, the buffer has to be
@@ -799,7 +808,7 @@ EmitTuple Condition 3
             {
                 byte[] tempArray = new byte[__length];
                 System.arraycopy(_bufferList.get(__currentBuffer),__bufferIndex,tempArray,0, __length);
-                String tupleData = new String(tempArray);
+                String tupleData = new String(tempArray, Charsets.UTF_8);//FindBug Fix
                 _collector.emit("dataStream", new Values(tupleData));
                 __bufferIndex = __bufferIndex + __length;
                 return;

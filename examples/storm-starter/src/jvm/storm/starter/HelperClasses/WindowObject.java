@@ -127,7 +127,7 @@ public class WindowObject implements Serializable{
      * @return window object
      * @throws Exception
      */
-    public BaseWindowBolt CreateWindow() throws Exception {
+    public BaseWindowBolt createWindow() throws Exception {//Findbug Fix
 
         BaseWindowBolt window = null;
         WindowObject wObject = new WindowObject(windowingMechanism,windowLength, slideBy, isTimeBased );

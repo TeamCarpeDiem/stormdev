@@ -18,6 +18,7 @@ public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
     long tupleCount; //Variable to keep track of the tuple count for time based window
     boolean isTimeBased = false;
     long slideBy;
+    int time = 0 ;
 
     public SlidingWindowBolt(WindowObject wObject)
     {
@@ -47,7 +48,8 @@ public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
         if(isTimeBased)
         {
             if (isTickTuple(tuple)) {
-                LOG.info("Count for this second::"+secondCount);
+                time++;
+                LOG.info("Count for this second::"+ time + "  " + secondCount);
                 secondCount = 0;
                 tupleCount++;
                 if(tupleCount == windowStart-1)//If the tuple marks the window beginning

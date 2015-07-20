@@ -93,7 +93,8 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
         }
         finally {
             try {
-                input.close(); //FindBug Fix
+                if(input != null) //FindBug Fix
+                    input.close(); //FindBug Fix
             } catch (IOException e) {
                 e.printStackTrace();
             }

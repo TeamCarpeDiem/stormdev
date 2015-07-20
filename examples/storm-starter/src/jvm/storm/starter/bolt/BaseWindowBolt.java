@@ -828,7 +828,7 @@ EmitTuple Condition4
                 __bufferIndex =0;
                 __length = __length - partLength;
                 System.arraycopy(_bufferList.get(__currentBuffer), __bufferIndex, tempArray, partLength, __length);
-                String tupleData = new String(tempArray);
+                String tupleData = new String(tempArray, Charsets.UTF_8);//FindBug Fix
                 _collector.emit("dataStream", new Values(tupleData));
                 __bufferIndex = __bufferIndex + __length;
                 return;

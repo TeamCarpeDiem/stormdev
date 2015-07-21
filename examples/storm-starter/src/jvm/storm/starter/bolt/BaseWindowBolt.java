@@ -330,8 +330,8 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
         }
         catch(ClosedChannelException ex)
         {
-            if(cleanUp != 1)
-                LOG.error("Writer thread interrupted while writing to the disk");
+           // if(cleanUp != 1)
+           //     LOG.error("Writer thread interrupted while writing to the disk");
         }
         catch(IOException ex)
         {

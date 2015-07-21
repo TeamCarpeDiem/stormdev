@@ -59,11 +59,15 @@ public class CummulativeMovingAvgTopology {
 
 
         Utils.sleep(5000);
-        
+
         wObject = new WindowObject("Sliding", 55000,2500, false);
         //wObject = new WindowObject("Sliding", 20, 5, true); //Uncomment this line for time based window and comment the previois line
         builder = new WindowTopologyBuilder();
         builder.setSpout("RandomMessage", new RandomMessageSpout(), 20);
+        //wObject = new WindowObject("Sliding", 10000,2500, false);
+        wObject = new WindowObject("Sliding", 6, 2, true); //Uncomment this line for time based window and comment the previois line
+        builder = new WindowTopologyBuilder();
+        builder.setSpout("RandomMessage", new RandomMessageSpout(), 12);
         builder.setBolt("Sliding", wObject.createWindow() ,1).shuffleGrouping("RandomMessage");
         builder.setBolt("Average", new MovingAverageBolt(), 1).shuffleGrouping("Sliding","dataStream")
                 .shuffleGrouping("Sliding","mockTickTuple");
@@ -78,7 +82,9 @@ public class CummulativeMovingAvgTopology {
             cluster.submitTopology("test", conf, builder.createTopology());
             LOG.info("Topology Created");
             Utils.sleep(180000);
+            Utils.sleep(35000);
             cluster.killTopology("test");
+            LOG.info("Topology Killed");
             LOG.info("Topology Killed");
             cluster.shutdown();
             exit(0);

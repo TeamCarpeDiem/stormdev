@@ -55,6 +55,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     byte[] _writeBuffer; //Buffer which is used to perform bulk write to the disk
     int _bufferIndex;
     FileOutputStream _fileWriter;
+    long _fileStopper;
     int secondCount; //TODO Remove before releasing final code
 
     /********************* Updated while reading data from disk to memory  **********************/
@@ -116,6 +117,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
 
         _windowStartAddress = new LinkedBlockingQueue<Long>();
         _windowEndAddress = new LinkedBlockingQueue<Long>();
+        _fileStopper = -1L;
 
         _writeBuffer = new byte[WRITEBUFFERSIZE];
 
@@ -130,6 +132,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
         try {
             _fileWriter = new FileOutputStream(FILEPATH);
             _fileReader = new RandomAccessFile(FILEPATH,"r");
+
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -269,8 +272,12 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
             //If the Writer is about to catch up the reader because of the speed difference between the reader and
             //the writer, the Writer has to be blocked to prevent the data from getting corrupted. Hence we are blocking
             //the writer for 10 seconds.
-            if(!_windowStartAddress.isEmpty() && fc.position()  < (long)_windowStartAddress.peek()
-                    && (((long)_windowStartAddress.peek() - fc.position() ) < (long)READBUFFERSIZE))
+          /*  if(!_windowStartAddress.isEmpty() && (fc.position()  < (long)_windowStartAddress.peek()
+                    && (((long)_windowStartAddress.peek() - fc.position() ) < (long)READBUFFERSIZE)) || (startOffset != -1 && fc.position() < startOffset &&
+                        (((long)_windowStartAddress.peek() - startOffset ) < (long)READBUFFERSIZE)))*/
+            if(_fileStopper >= 0 &&
+                    ((fc.position() < _fileStopper && (_fileStopper -fc.position()) <= (long)READBUFFERSIZE)
+                            ||((fc.position()+READBUFFERSIZE) > MAXFILESIZE && (fc.position()+READBUFFERSIZE)%MAXFILESIZE > _fileStopper)))
             {
                 LOG.info("Writer catching up  on Reader..  Start Address::"+ _windowStartAddress.peek());
                 Utils.sleep(CATCHUPSLEEPTIME);
@@ -330,8 +337,8 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
         }
         catch(ClosedChannelException ex)
         {
-           // if(cleanUp != 1)
-           //     LOG.error("Writer thread interrupted while writing to the disk");
+            // if(cleanUp != 1)
+            //     LOG.error("Writer thread interrupted while writing to the disk");
         }
         catch(IOException ex)
         {
@@ -520,9 +527,9 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                         __isWrapLoadNeeded = true;
                                         startOffset = -1L;
                                         break;
-                                    //data in file from startoffset till the end of file can fit in the buffersize,
-                                    // excluding end of window
-                                    // DiskToMemory Condition 4
+                                        //data in file from startoffset till the end of file can fit in the buffersize,
+                                        // excluding end of window
+                                        // DiskToMemory Condition 4
                                     } else if((long)(MAXFILESIZE - __start1) + tempPeek +1L >= READBUFFERSIZE +1) {
                                         if (MAXFILESIZE - __start1 >= READBUFFERSIZE) {
                                             __end1 = __start1 + READBUFFERSIZE - 1L;
@@ -558,8 +565,8 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                                     __isWrapLoadNeeded = false;
                                     startOffset = (long) (__end1 + 1L) % MAXFILESIZE;
                                     break;
-                                //Check if there is enough data to fill the buffer and wrapping up is needed
-                                // DiskToMemory Condition 7
+                                    //Check if there is enough data to fill the buffer and wrapping up is needed
+                                    // DiskToMemory Condition 7
                                 } else if(_windowEndAddress.isEmpty() && (long)(MAXFILESIZE - __start1 )
                                         + tempFileWriter >= 1L + READBUFFERSIZE) {
                                     __end1 = MAXFILESIZE - 1L;
@@ -623,6 +630,15 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
                     }
 
                     int threadnum = _threadSequenceQueue.remove();
+                    long tempFileStopper = -1L;
+                    if(!_windowStartAddress.isEmpty())
+                        tempFileStopper = _windowStartAddress.peek();
+                    else
+                        tempFileStopper = -1L;
+                    if(tempFileStopper >= 0 && (tempFileStopper < startOffset || startOffset == -1))
+                        _fileStopper = tempFileStopper;
+                    else
+                        _fileStopper = startOffset;
                     _threadSequenceQueue.add(threadnum);
                     _threadSequenceQueue.notifyAll();
                     try {

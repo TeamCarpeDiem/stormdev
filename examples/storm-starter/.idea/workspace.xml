@@ -1,16 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="57057aaa-7c75-4e3c-9a77-975dc01fb597" name="Default" comment="">
+    <list default="true" id="57057aaa-7c75-4e3c-9a77-975dc01fb597" name="Default" comment="Removed unwanted comment">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/jvm/storm/starter/bolt/SplitterBolt.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/jvm/storm/starter/bolt/TweetExtractBolt.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/bolt/AbstractRankerBolt.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/bolt/AbstractRankerBolt.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/BasicDRPCTopology.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/BasicDRPCTopology.class" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/CummulativeMovingAvgTopology.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/CummulativeMovingAvgTopology.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/HelperClasses/WindowObject.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/HelperClasses/WindowObject.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/jvm/storm/starter/bolt/BaseWindowBolt.java" afterPath="$PROJECT_DIR$/src/jvm/storm/starter/bolt/BaseWindowBolt.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/bolt/IntermediateRankingsBolt.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/bolt/IntermediateRankingsBolt.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/test-classes/storm/starter/bolt/IntermediateRankingsBoltTest.class" afterPath="$PROJECT_DIR$/target/test-classes/storm/starter/bolt/IntermediateRankingsBoltTest.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/test-classes/storm/starter/tools/MockTupleHelpers.class" afterPath="$PROJECT_DIR$/target/test-classes/storm/starter/tools/MockTupleHelpers.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/tools/NthLastModifiedTimeTracker.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/tools/NthLastModifiedTimeTracker.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/test-classes/storm/starter/tools/NthLastModifiedTimeTrackerTest.class" afterPath="$PROJECT_DIR$/target/test-classes/storm/starter/tools/NthLastModifiedTimeTrackerTest.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/PrintSampleStream.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/PrintSampleStream.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/tools/RankableObjectWithFields.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/tools/RankableObjectWithFields.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/test-classes/storm/starter/tools/RankableObjectWithFieldsTest.class" afterPath="$PROJECT_DIR$/target/test-classes/storm/starter/tools/RankableObjectWithFieldsTest.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/tools/Rankings.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/tools/Rankings.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/test-classes/storm/starter/tools/RankingsTest$1.class" afterPath="$PROJECT_DIR$/target/test-classes/storm/starter/tools/RankingsTest$1.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/test-classes/storm/starter/tools/RankingsTest.class" afterPath="$PROJECT_DIR$/target/test-classes/storm/starter/tools/RankingsTest.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/ReachTopology$1.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/ReachTopology$1.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/ReachTopology$2.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/ReachTopology$2.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/ReachTopology$GetFollowers.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/ReachTopology$GetFollowers.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/ReachTopology$GetTweeters.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/ReachTopology$GetTweeters.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/ReachTopology.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/ReachTopology.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/bolt/RollingCountBolt.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/bolt/RollingCountBolt.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/test-classes/storm/starter/bolt/RollingCountBoltTest.class" afterPath="$PROJECT_DIR$/target/test-classes/storm/starter/bolt/RollingCountBoltTest.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/RollingTopWords.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/RollingTopWords.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/bolt/SingleJoinBolt$1.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/bolt/SingleJoinBolt$1.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/bolt/SingleJoinBolt$ExpireCallback.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/bolt/SingleJoinBolt$ExpireCallback.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/bolt/SingleJoinBolt.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/bolt/SingleJoinBolt.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/SingleJoinExample.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/SingleJoinExample.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/test-classes/storm/starter/tools/SlidingWindowCounterTest.class" afterPath="$PROJECT_DIR$/target/test-classes/storm/starter/tools/SlidingWindowCounterTest.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/tools/SlotBasedCounter.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/tools/SlotBasedCounter.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/test-classes/storm/starter/tools/SlotBasedCounterTest.class" afterPath="$PROJECT_DIR$/target/test-classes/storm/starter/tools/SlotBasedCounterTest.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/util/StormRunner.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/util/StormRunner.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/bolt/TotalRankingsBolt.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/bolt/TotalRankingsBolt.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/test-classes/storm/starter/bolt/TotalRankingsBoltTest.class" afterPath="$PROJECT_DIR$/target/test-classes/storm/starter/bolt/TotalRankingsBoltTest.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalGlobalCount$1$1.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalGlobalCount$1$1.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalGlobalCount$1$2.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalGlobalCount$1$2.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalGlobalCount$1$3.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalGlobalCount$1$3.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalGlobalCount$1.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalGlobalCount$1.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalGlobalCount$UpdateGlobalCount.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalGlobalCount$UpdateGlobalCount.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalGlobalCount.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalGlobalCount.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalWords$1$1.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalWords$1$1.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalWords$1$2.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalWords$1$2.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalWords$1$3.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalWords$1$3.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalWords$1.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalWords$1.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalWords$BucketCountUpdater.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalWords$BucketCountUpdater.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalWords$Bucketize.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalWords$Bucketize.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalWords$KeyedCountUpdater.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalWords$KeyedCountUpdater.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalWords.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/TransactionalWords.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/trident/TridentReach$1.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/trident/TridentReach$1.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/trident/TridentReach$2.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/trident/TridentReach$2.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/trident/TridentReach$ExpandList.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/trident/TridentReach$ExpandList.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/trident/TridentReach$One.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/trident/TridentReach$One.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/trident/TridentReach$StaticSingleKeyMapState.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/trident/TridentReach$StaticSingleKeyMapState.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/trident/TridentReach.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/trident/TridentReach.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/trident/TridentWordCount$Split.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/trident/TridentWordCount$Split.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/trident/TridentWordCount.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/trident/TridentWordCount.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/util/TupleHelpers.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/util/TupleHelpers.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/spout/TwitterSampleSpout$1.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/spout/TwitterSampleSpout$1.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/storm/starter/spout/TwitterSampleSpout.class" afterPath="$PROJECT_DIR$/target/classes/storm/starter/spout/TwitterSampleSpout.class" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/jvm/storm/starter/CummulativeMovingAvgTopology.java" afterPath="$PROJECT_DIR$/src/jvm/storm/starter/CummulativeMovingAvgTopology.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/jvm/storm/starter/bolt/MovingAverageBolt.java" afterPath="$PROJECT_DIR$/src/jvm/storm/starter/bolt/MovingAverageBolt.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/jvm/storm/starter/spout/RandomMessageSpout.java" afterPath="$PROJECT_DIR$/src/jvm/storm/starter/spout/RandomMessageSpout.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/jvm/storm/starter/bolt/SlidingWindowBolt.java" afterPath="$PROJECT_DIR$/src/jvm/storm/starter/bolt/SlidingWindowBolt.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/config.properties" afterPath="$PROJECT_DIR$/config.properties" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
-    <list id="17c50505-ded7-497a-afb1-e423cb6e255f" name="New changelist" comment="">
-      <change type="DELETED" beforePath="D:\Harini\stormdev\examples\storm-starter\target\classes\storm\starter\spout\RandomIntegerSpout.class" afterPath="" />
-    </list>
+    <list id="17c50505-ded7-497a-afb1-e423cb6e255f" name="New changelist" comment="" />
     <ignored path="storm-starter.iws" />
     <ignored path=".idea/workspace.xml" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -31,33 +90,47 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="BaseWindowBolt.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="BaseWindowBolt.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/bolt/BaseWindowBolt.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.40685543">
-              <caret line="333" column="16" selection-start-line="333" selection-start-column="16" selection-end-line="333" selection-end-column="16" />
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="RandomSentenceSpout.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/spout/RandomSentenceSpout.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="30" column="13" selection-start-line="30" selection-start-column="13" selection-end-line="30" selection-end-column="13" />
+            <state vertical-scroll-proportion="-6.712121">
+              <caret line="828" column="43" selection-start-line="828" selection-start-column="33" selection-end-line="828" selection-end-column="43" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="CummulativeMovingAvgTopology.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/CummulativeMovingAvgTopology.java">
+      <file leaf-file-name="SplitterBolt.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/bolt/SplitterBolt.java">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="35" column="60" selection-start-line="35" selection-start-column="60" selection-end-line="35" selection-end-column="60" />
+              <caret line="44" column="9" selection-start-line="44" selection-start-column="9" selection-end-line="44" selection-end-column="9" />
+              <folding>
+                <element signature="imports" expanded="true" />
+                <element signature="e#747#748#0" expanded="true" />
+                <element signature="e#775#776#0" expanded="true" />
+                <element signature="e#1257#1258#0" expanded="true" />
+                <element signature="e#1310#1311#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="TweetExtractBolt.java" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/bolt/TweetExtractBolt.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.92191976">
+              <caret line="56" column="0" selection-start-line="56" selection-start-column="0" selection-end-line="56" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="MovingAverageBolt.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/bolt/MovingAverageBolt.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="28" column="5" selection-start-line="0" selection-start-column="0" selection-end-line="71" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -67,22 +140,27 @@
         <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/spout/RandomMessageSpout.java">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="84" column="48" selection-start-line="84" selection-start-column="48" selection-end-line="84" selection-end-column="48" />
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
+              <caret line="88" column="20" selection-start-line="88" selection-start-column="20" selection-end-line="88" selection-end-column="20" />
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
     </leaf>
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="UPDATE_TYPE" value="MERGE" />
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$/../.." value="S7_Windows/Mac" />
+        <entry key="$PROJECT_DIR$/../.." value="master" />
       </map>
     </option>
   </component>
@@ -98,15 +176,17 @@
         <option value="$PROJECT_DIR$/src/jvm/storm/starter/bolt/BaseWindowBolt1.java" />
         <option value="$PROJECT_DIR$/src/jvm/storm/starter/bolt/LandmarkWindowBolt.java" />
         <option value="$PROJECT_DIR$/src/jvm/storm/starter/Interfaces/IWindowBolt.java" />
-        <option value="$PROJECT_DIR$/log4j.properties" />
         <option value="$PROJECT_DIR$/src/jvm/storm/starter/spout/RandomIntegerSpout.java" />
         <option value="$PROJECT_DIR$/src/jvm/storm/starter/HelperClasses/WindowObject.java" />
+        <option value="$PROJECT_DIR$/src/jvm/storm/starter/bolt/BaseWindowBolt.java" />
+        <option value="$PROJECT_DIR$/src/jvm/storm/starter/spout/RandomMessageSpout.java" />
         <option value="$PROJECT_DIR$/src/jvm/storm/starter/bolt/MovingAverageBolt.java" />
         <option value="$PROJECT_DIR$/src/jvm/storm/starter/bolt/SlidingWindowBolt.java" />
-        <option value="$PROJECT_DIR$/src/jvm/storm/starter/CummulativeMovingAvgTopology.java" />
+        <option value="$PROJECT_DIR$/log4j.properties" />
         <option value="$PROJECT_DIR$/config.properties" />
-        <option value="$PROJECT_DIR$/src/jvm/storm/starter/spout/RandomMessageSpout.java" />
-        <option value="$PROJECT_DIR$/src/jvm/storm/starter/bolt/BaseWindowBolt.java" />
+        <option value="$PROJECT_DIR$/src/jvm/storm/starter/CummulativeMovingAvgTopology.java" />
+        <option value="$PROJECT_DIR$/src/jvm/storm/starter/bolt/SplitterBolt.java" />
+        <option value="$PROJECT_DIR$/src/jvm/storm/starter/bolt/TweetExtractBolt.java" />
       </list>
     </option>
   </component>
@@ -122,8 +202,9 @@
   </component>
   <component name="ProjectFrameBounds">
     <option name="x" value="-16" />
-    <option name="width" value="3216" />
-    <option name="height" value="1744" />
+    <option name="y" value="-16" />
+    <option name="width" value="3232" />
+    <option name="height" value="1732" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <OptionsSetting value="true" id="Add" />
@@ -148,9 +229,9 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="PackagesPane" />
       <pane id="Scope" />
       <pane id="Scratches" />
-      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -319,6 +400,122 @@
     <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
     <property name="FullScreen" value="false" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="storm.starter.bolt" />
+    </key>
+  </component>
+  <component name="RestoreUpdateTree" date="Moments ago" ActionInfo="_Update">
+    <UpdatedFiles>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Updated from server" />
+        <option name="myStatusName" value="Changed on server" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="CHANGED_ON_SERVER" />
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Updated" />
+          <option name="myStatusName" value="Changed" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="UPDATED" />
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/log4j.properties</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/src/jvm/storm/starter/bolt/BaseWindowBolt.java</PATH>
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Created" />
+          <option name="myStatusName" value="Created" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="CREATED" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Deleted" />
+          <option name="myStatusName" value="Deleted" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="true" />
+          <option name="myId" value="REMOVED_FROM_REPOSITORY" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Restored" />
+          <option name="myStatusName" value="Will be restored" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="RESTORED" />
+        </FILE-GROUP>
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Modified" />
+        <option name="myStatusName" value="Modified" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MODIFIED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Skipped" />
+        <option name="myStatusName" value="Skipped" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="SKIPPED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with conflicts" />
+        <option name="myStatusName" value="Will be merged with conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_CONFLICTS" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with tree conflicts" />
+        <option name="myStatusName" value="Merged with tree conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_TREE_CONFLICT" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with property conflicts" />
+        <option name="myStatusName" value="Will be merged with property conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_PROPERTY_CONFLICT" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged" />
+        <option name="myStatusName" value="Will be merged" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Not in repository" />
+        <option name="myStatusName" value="Not in repository" />
+        <option name="mySupportsDeletion" value="true" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="UNKNOWN" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Locally added" />
+        <option name="myStatusName" value="Locally added" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="LOCALLY_ADDED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Locally removed" />
+        <option name="myStatusName" value="Locally removed" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="LOCALLY_REMOVED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Switched" />
+        <option name="myStatusName" value="Switched" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="SWITCHED" />
+      </FILE-GROUP>
+    </UpdatedFiles>
   </component>
   <component name="RunManager" selected="Application.CummulativeMovingAvgTopology">
     <configuration default="false" name="CummulativeMovingAvgTopology" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
@@ -764,33 +961,33 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-16" y="0" width="3216" height="1744" extended-state="0" />
+    <frame x="-16" y="-16" width="3232" height="1732" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="FindBugs-IDEA" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.6502396" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32785764" sideWeight="0.49730977" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.7928524" sideWeight="0.50269026" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32922655" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32919255" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.9496204" sideWeight="0.49730977" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2584306" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.23870967" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="UI Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.72347707" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32854208" sideWeight="0.49730977" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.87748116" sideWeight="0.49730977" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.69953674" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.72347707" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
     </layout>
     <layout-to-restore>
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -859,7 +1056,7 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="6" />
+      <option name="time" value="7" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -868,44 +1065,6 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/CummulativeMovingAvgTopology.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="55" column="0" selection-start-line="55" selection-start-column="0" selection-end-line="55" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/bolt/BaseWindowBolt.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/bolt/BaseWindowBolt.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/bolt/BaseWindowBolt.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="270" column="89" selection-start-line="270" selection-start-column="89" selection-end-line="270" selection-end-column="89" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/bolt/MovingAverageBolt.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -945,9 +1104,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="270" column="89" selection-start-line="270" selection-start-column="89" selection-end-line="270" selection-end-column="89" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -962,9 +1118,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1000,9 +1153,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="322" column="22" selection-start-line="322" selection-start-column="15" selection-end-line="322" selection-end-column="22" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1038,9 +1188,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1170,25 +1317,11 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/spout/TwitterSampleSpout.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.1328125">
-          <caret line="129" column="11" selection-start-line="129" selection-start-column="11" selection-end-line="129" selection-end-column="11" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/HelperClasses/WindowObject.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="129" column="72" selection-start-line="129" selection-start-column="72" selection-end-line="129" selection-end-column="72" />
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/log4j.properties">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="10" column="0" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
         </state>
       </provider>
     </entry>
@@ -1199,25 +1332,19 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/bolt/SlidingWindowBolt.java">
+    <entry file="file://$PROJECT_DIR$/log4j.properties">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.0234375">
-          <caret line="20" column="11" selection-start-line="20" selection-start-column="11" selection-end-line="20" selection-end-column="11" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="10" column="0" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/bolt/MovingAverageBolt.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.4609375">
-          <caret line="48" column="0" selection-start-line="48" selection-start-column="0" selection-end-line="48" selection-end-column="0" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/config.properties">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.3984375">
-          <caret line="17" column="22" selection-start-line="17" selection-start-column="22" selection-end-line="17" selection-end-column="22" />
+        <state vertical-scroll-proportion="0.04727794">
+          <caret line="2" column="0" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1229,31 +1356,89 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/spout/RandomMessageSpout.java">
+    <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/spout/TwitterSampleSpout.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="84" column="48" selection-start-line="84" selection-start-column="48" selection-end-line="84" selection-end-column="48" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
+        <state vertical-scroll-proportion="0.21991403">
+          <caret line="92" column="0" selection-start-line="92" selection-start-column="0" selection-end-line="92" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/CummulativeMovingAvgTopology.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="35" column="60" selection-start-line="35" selection-start-column="60" selection-end-line="35" selection-end-column="60" />
+          <caret line="28" column="0" selection-start-line="28" selection-start-column="0" selection-end-line="28" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/bolt/RollingCountBolt.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="55" column="13" selection-start-line="55" selection-start-column="13" selection-end-line="55" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/bolt/SingleJoinBolt.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="31" column="13" selection-start-line="31" selection-start-column="13" selection-end-line="31" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/bolt/SlidingWindowBolt.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.73997134">
+          <caret line="95" column="7" selection-start-line="95" selection-start-column="7" selection-end-line="95" selection-end-column="7" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/bolt/MovingAverageBolt.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="28" column="5" selection-start-line="0" selection-start-column="0" selection-end-line="71" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/bolt/BaseWindowBolt.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.40685543">
-          <caret line="333" column="16" selection-start-line="333" selection-start-column="16" selection-end-line="333" selection-end-column="16" />
+        <state vertical-scroll-proportion="-6.712121">
+          <caret line="828" column="43" selection-start-line="828" selection-start-column="33" selection-end-line="828" selection-end-column="43" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/spout/RandomMessageSpout.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="88" column="20" selection-start-line="88" selection-start-column="20" selection-end-line="88" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/bolt/SplitterBolt.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="44" column="9" selection-start-line="44" selection-start-column="9" selection-end-line="44" selection-end-column="9" />
           <folding>
             <element signature="imports" expanded="true" />
+            <element signature="e#747#748#0" expanded="true" />
+            <element signature="e#775#776#0" expanded="true" />
+            <element signature="e#1257#1258#0" expanded="true" />
+            <element signature="e#1310#1311#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/jvm/storm/starter/bolt/TweetExtractBolt.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.92191976">
+          <caret line="56" column="0" selection-start-line="56" selection-start-column="0" selection-end-line="56" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>

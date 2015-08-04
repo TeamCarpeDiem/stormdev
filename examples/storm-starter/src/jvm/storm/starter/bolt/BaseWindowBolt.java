@@ -78,6 +78,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
     {
         Properties prop = new Properties();
         InputStream input = null;
+        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~Created Basewindow~~~~~~~~~~~~~~~~~~~~~~~");
         try {
             FILEPATH = System.getProperty("user.home")+"//WindowsContent";
             input = new FileInputStream("config.properties");
@@ -158,7 +159,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
 
     public void declareOutputFields(OutputFieldsDeclarer declarer)
     {
-        declarer.declareStream("dataStream", new Fields("RandomInt"));
+        declarer.declareStream("dataStream", new Fields("tweet"));
         declarer.declareStream("mockTickTuple", new Fields("MockTick"));
 
     }
@@ -285,6 +286,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
 
             //If the tuple marks the beginning of the window, then start address queue has to be updated
             if (flag == 0) {
+                System.out.println("Adding window start");
                 writeInParts();
                 for (int i = 0; i < count; i++) {
                     _windowStartAddress.add(fc.position());
@@ -320,6 +322,7 @@ public abstract class BaseWindowBolt extends BaseRichBolt implements IBaseWindow
             }
 
             if (flag == 1) {//If the tuple marks the Window end
+                System.out.println("Adding window end");
                 writeInParts();
                 if(fc.position() == 0L)//If the file writer pointer is in the 0th index, the previous window ended at the
                 //end of the file.
@@ -810,6 +813,7 @@ EmitTuple Condition2
             else if(__length == -1)
             {
                 _producerConsumerMap.put(__currentBuffer, -1);
+                System.out.println("~~~~~~~~~~~EOW~~~~~~~~~~~");
                 sendEndOfWindowSignal();
                 __currentBuffer++;
                 __currentBuffer = __currentBuffer%MAXTHREAD;
@@ -826,6 +830,7 @@ EmitTuple Condition 3
                 byte[] tempArray = new byte[__length];
                 System.arraycopy(_bufferList.get(__currentBuffer),__bufferIndex,tempArray,0, __length);
                 String tupleData = new String(tempArray, Charsets.UTF_8);
+                //System.out.println("Tuple data is::"+tupleData);
                 _collector.emit("dataStream", new Values(tupleData));
                 __bufferIndex = __bufferIndex + __length;
                 return;
@@ -837,7 +842,7 @@ EmitTuple Condition4
             else {
                 byte[] tempArray = new byte[__length];
                 int partLength = READBUFFERSIZE - __bufferIndex;
-                System.arraycopy(_bufferList.get(__currentBuffer), __bufferIndex, tempArray,0, partLength);
+                System.arraycopy(_bufferList.get(__currentBuffer), __bufferIndex, tempArray, 0, partLength);
                 _producerConsumerMap.put(__currentBuffer, -1);
                 __currentBuffer++;
                 __currentBuffer = __currentBuffer%MAXTHREAD;
@@ -846,6 +851,7 @@ EmitTuple Condition4
                 __length = __length - partLength;
                 System.arraycopy(_bufferList.get(__currentBuffer), __bufferIndex, tempArray, partLength, __length);
                 String tupleData = new String(tempArray, Charsets.UTF_8);
+                System.out.println("Tuple data is::"+tupleData);
                 _collector.emit("dataStream", new Values(tupleData));
                 __bufferIndex = __bufferIndex + __length;
                 return;

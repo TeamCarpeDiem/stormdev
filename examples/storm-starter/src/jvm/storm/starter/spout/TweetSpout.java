@@ -38,13 +38,14 @@ public class TweetSpout extends BaseRichSpout {
 
 
 
+
   @Override
   public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
     _collector = collector;
     _rand = new Random();
 
     try {
-      fstream = new FileInputStream("/Users/Pradheep/Desktop/1000line");
+      fstream = new FileInputStream("C:\\Users\\harini\\Desktop\\Data\\part1");
     } catch (FileNotFoundException e) {
       e.printStackTrace();
     }
@@ -58,21 +59,13 @@ public class TweetSpout extends BaseRichSpout {
 //Read File Line By Line
     try {
       if((strLine = br.readLine()) != null)   {
-        // Print the content on the console
-        //System.out.println (strLine);
         _collector.emit(new Values(strLine));
       }
     } catch (IOException e) {
       e.printStackTrace();
     }
 
-//Close the input stream
-    /*try {
-      br.close();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }*/
-    Utils.sleep(100);
+    Utils.sleep(1);
   }
 
   @Override

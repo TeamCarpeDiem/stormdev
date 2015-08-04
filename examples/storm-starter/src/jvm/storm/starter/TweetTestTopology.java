@@ -30,6 +30,11 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import backtype.storm.utils.Utils;
+import storm.starter.HelperClasses.WindowObject;
+import storm.starter.Interfaces.IWindowBolt;
+import storm.starter.bolt.MovingAverageBolt;
+import storm.starter.bolt.SplitterBolt;
+import storm.starter.bolt.TweetExtractBolt;
 import storm.starter.spout.TweetSpout;
 
 import java.util.Map;
@@ -39,7 +44,7 @@ import java.util.Map;
  */
 public class TweetTestTopology {
 
-  public static class ExclamationBolt extends BaseRichBolt {
+  public static class ExclamationBolt extends BaseRichBolt implements IWindowBolt{
     OutputCollector _collector;
 
     @Override
@@ -58,19 +63,27 @@ public class TweetTestTopology {
       declarer.declare(new Fields("word"));
     }
 
-
+    @Override
+    public boolean isMockTick(Tuple tuple) {
+      return false;
+    }
   }
 
   public static void main(String[] args) throws Exception {
-    TopologyBuilder builder = new TopologyBuilder();
+    WindowTopologyBuilder builder = new WindowTopologyBuilder();
 
-    //builder.setSpout("word", new TestWordSpout(), 10);
-    builder.setSpout("tweet", new TweetSpout(),1);
-    builder.setBolt("exclaim1", new ExclamationBolt(), 1).shuffleGrouping("tweet");
-    builder.setBolt("exclaim2", new ExclamationBolt(), 1).shuffleGrouping("exclaim1");
+    builder.setSpout("tweet", new TweetSpout(), 1);
+    builder.setBolt("split", new SplitterBolt(), 1).shuffleGrouping("tweet");
+    builder.setBolt("extract", new TweetExtractBolt(),1).shuffleGrouping("split");
+
+    WindowObject wObject = new WindowObject("Landmark", 1000,5, false);
+    builder.setBolt("Landmark", wObject.createWindow() ,1).shuffleGrouping("extract");
+
+    builder.setBolt("Average", new MovingAverageBolt(), 1).shuffleGrouping("Landmark","dataStream")
+            .shuffleGrouping("Landmark", "mockTickTuple");
 
     Config conf = new Config();
-    conf.setDebug(true);
+    conf.setDebug(false);
 
     if (args != null && args.length > 0) {
       conf.setNumWorkers(3);

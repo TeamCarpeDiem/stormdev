@@ -47,7 +47,7 @@ public class TweetExtractBolt extends BaseRichBolt implements IWindowBolt {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("Tweet"));
+        declarer.declare(new Fields("tweet"));
     }
 
     public boolean isMockTick(Tuple tuple) {

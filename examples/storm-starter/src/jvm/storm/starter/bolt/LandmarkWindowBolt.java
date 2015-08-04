@@ -70,6 +70,7 @@ public class LandmarkWindowBolt extends BaseWindowBolt implements IWindowBolt{
         }
         else {
             tupleCount++;
+            if(tupleCount % 100 == 0)System.out.println("Count::"+tupleCount);
             if(tupleCount != windowStart && tupleCount != windowEnd) //The tuple is in the middle of a window
                 storeTuple(tuple, -1, 1);
             if (tupleCount == windowEnd) { //If the tuple marks the window end

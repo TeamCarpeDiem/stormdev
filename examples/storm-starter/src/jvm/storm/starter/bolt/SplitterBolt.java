@@ -39,6 +39,7 @@ public class SplitterBolt extends BaseRichBolt implements IWindowBolt {
     public void execute(Tuple tuple) {
         tweet = tuple.getString(0);
         String[] tweetSplit = tweet.split("\t");
+
         if(tweetSplit.length >= 3)
         {
             _collector.emit(new Values(tweetSplit[2]));
@@ -47,7 +48,7 @@ public class SplitterBolt extends BaseRichBolt implements IWindowBolt {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("Tweet"));
+        declarer.declare(new Fields("tweet"));
     }
 
     public boolean isMockTick(Tuple tuple) {

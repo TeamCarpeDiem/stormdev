@@ -34,7 +34,6 @@ public class LandmarkWindowBolt extends BaseWindowBolt implements IWindowBolt{
         {
             for(int i = 0 ; i < slideBy; i++) {
                 addStartAddress(0l);
-                LOG.info("Window Start::" + tupleCount);
             }
             windowStart += slideBy*wLength;
         }
@@ -56,13 +55,10 @@ public class LandmarkWindowBolt extends BaseWindowBolt implements IWindowBolt{
                 tupleCount++;
                 if(tupleCount == windowStart-1)//If the tuple marks the window beginning
                 {
-                    for(int i = 0; i < slideBy; i++)
-                        LOG.info("Window Start::" + tupleCount);
                     storeTuple(tuple, 0, slideBy);//Window start will be same slideBy times
                     windowStart += slideBy*wLength;//WindowStart has to be updated only after slideBy tick tuples
                 }
                 if (tupleCount == windowEnd) { //If the tuple marks the window end
-                    LOG.info("Window End::" + (tupleCount));
                     storeTuple(tuple, 1, 1);
                     windowEnd += wLength;//Window end should be updated for every window length
                 }
@@ -77,13 +73,10 @@ public class LandmarkWindowBolt extends BaseWindowBolt implements IWindowBolt{
             if(tupleCount != windowStart && tupleCount != windowEnd) //The tuple is in the middle of a window
                 storeTuple(tuple, -1, 1);
             if (tupleCount == windowEnd) { //If the tuple marks the window end
-                LOG.info("Window End::" + (tupleCount));
                 storeTuple(tuple, 1, 1);
                 windowEnd += wLength;
             }
             if (tupleCount == windowStart) {//If the tuple marks the window beginning
-                for(int i = 0; i < slideBy; i++)
-                    LOG.info("Window Start::" + tupleCount);
                 storeTuple(tuple, 0, slideBy);
                 windowStart += slideBy*wLength;
             }

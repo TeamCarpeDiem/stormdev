@@ -19,6 +19,7 @@ public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
     boolean isTimeBased = false;
     long slideBy;
     int time = 0 ;
+    long countTuple = 0;
 
     public SlidingWindowBolt(WindowObject wObject)
     {
@@ -49,7 +50,8 @@ public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
         {
             if (isTickTuple(tuple)) {
                 time++;
-                LOG.info("Count for this second::"+ time + "  " + secondCount);
+                LOG.info("Count for this second::"+ time + "  " + secondCount + " till now::"+ countTuple);
+                countTuple += secondCount;
                 secondCount = 0;
                 tupleCount++;
                 if(tupleCount == windowStart-1)//If the tuple marks the window beginning
@@ -75,12 +77,12 @@ public class SlidingWindowBolt extends BaseWindowBolt implements IWindowBolt{
             if(tupleCount != windowStart && tupleCount != windowEnd) //The tuple is in the middle of a window
                 storeTuple(tuple, -1, 1);
             if (tupleCount == windowEnd) { //If the tuple marks the window end
-                LOG.info("Window End::" + (tupleCount));
+                //LOG.info("Window End::" + (tupleCount));
                 storeTuple(tuple, 1, 1);
                 windowEnd += slideBy;
             }
             if (tupleCount == windowStart) {//If the tuple marks the window beginning
-                LOG.info("Window Start::" + (tupleCount));
+                //LOG.info("Window Start::" + (tupleCount));
                 storeTuple(tuple, 0, 1);
                 windowStart += slideBy;
             }

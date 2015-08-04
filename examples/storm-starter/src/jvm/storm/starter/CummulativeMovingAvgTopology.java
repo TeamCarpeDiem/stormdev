@@ -13,6 +13,7 @@ import org.apache.log4j.PropertyConfigurator;
 import storm.starter.HelperClasses.WindowObject;
 import storm.starter.bolt.MovingAverageBolt;
 import storm.starter.spout.RandomMessageSpout;
+import storm.starter.spout.TweetSpout;
 
 import java.io.File;
 
